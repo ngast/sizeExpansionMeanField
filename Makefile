@@ -17,7 +17,10 @@ compile_paper:
 simulations/rmf_tool:
 	cd simulations && git clone git@github.com:ngast/rmf_tool.git
 
-figures: simulations/rmf_tool
+simulations/output_pdfs:
+	mkdir simulations/output_pdfs
+
+figures: simulations/rmf_tool simulations/output_pdfs
 	echo 'Computing figures for EXAMPLE 1' 
 	cd simulations && $(JUPYTER_NBCONVERT) --execute $(EXAMPLE1)
 	cd simulations && $(JUPYTER_NBCONVERT) --execute $(EXAMPLE2)
