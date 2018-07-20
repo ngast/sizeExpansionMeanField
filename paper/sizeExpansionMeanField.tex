@@ -1,0 +1,1904 @@
+\documentclass[sigconf]{acmart}
+
+\setcopyright{rightsretained}
+\acmDOI{10.475/123_4}
+\acmISBN{123-4567-24-567/08/06}
+% \acmConference[WOODSTOCK'97]{ACM Woodstock conference}{July 1997}{El
+%   Paso, Texas USA}
+% \acmYear{1997}
+% \copyrightyear{2016}
+% \acmArticle{4}
+% \acmPrice{15.00}
+
+\usepackage{calc,xcolor}
+%\usepackage[paperwidth=\textwidth+2cm,paperheight=\textheight+1cm,margin=0.5cm]{geometry}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{amsmath,amsfonts,amsthm}
+\newtheorem{theorem}{Theorem}
+\newtheorem{coro}[theorem]{Corollary}
+\usepackage{tikz}
+%\usepackage[backend=bibtex,firstinits=true,maxbibnames=99]{biblatex}
+%\bibliography{biblio}
+\usepackage{hyperref}
+% \definecolor{darkblue}{rgb}{0 0 .6}
+% \hypersetup{colorlinks=true,linkcolor=darkblue,citecolor=darkblue,urlcolor=darkblue}
+% \hypersetup{pageanchor=false}
+%\hypersetup{draft=true}
+%\usepackage{listings}
+
+\newcommand\XN{X^{(N)}}
+\newcommand\LN{L^{(N)}}
+\newcommand\DeltaN{\Delta^{(N)}}
+\newcommand\bl{{\text{\boldmath$\ell$}}}
+\newcommand\betaN{\beta^{(N)}}
+\newcommand\PsiN{\Psi^{(N)}}
+\newcommand\E{\mathcal{E}}
+\newcommand\N{\mathbb{N}}
+\newcommand\R{\mathbb{R}}
+\newcommand\Z{\mathbb{Z}}
+\newcommand\calL{\mathcal{L}}
+\newcommand\floor[1]{\left\lfloor#1\right\rfloor}
+\newcommand\var[1]{\mathrm{var}\left[#1\right]}
+\newcommand\svar[1]{\mathrm{var}[#1]}
+\newcommand\esp[1]{{\mathchoice{\besp{#1}}{\sesp{#1}}{\sesp{#1}}{\sesp{#1}}}}
+\newcommand\besp[1]{\mathbb{E}\left[#1\right]}
+\newcommand\sesp[1]{\mathbb{E}[#1]}
+\newcommand\espN[1]{{\mathchoice{\bespN{#1}}{\sespN{#1}}{\sespN{#1}}{\sespN{#1}}}}
+\newcommand\bespN[1]{\mathbf{E}^{(N)}\left[#1\right]}
+\newcommand\sespN[1]{\mathbf{E}^{(N)}[#1]}
+\newcommand\Proba[1]{{\mathchoice{\bProba{#1}}{\sProba{#1}}{\sProba{#1}}{\sProba{#1}}}} 
+\newcommand\bProba[1]{\mathbf{P}\left[#1\right]}
+\newcommand\sProba[1]{\mathbf{P}[#1]}
+\newcommand\norm[1]{{\mathchoice{\bnorm{#1}}{\snorm{#1}}{\snorm{#1}}{\snorm{#1}}}}
+\newcommand\bnorm[1]{\left\|#1\right\|}
+\newcommand\snorm[1]{\|#1\|}
+
+\newcommand\abs[1]{\left|#1\right|}
+\newcommand\p[1]{\left(#1\right)}
+\newcommand\dt{\frac{d}{dt}}
+\newcommand\ds{\frac{d}{ds}}
+\newcommand\Sym{\mathrm{Sym}}
+\newcommand\red[1]{{\color{red!70!black!100}#1}}
+
+\newcommand\J[1]{J_{(#1)}}
+
+
+\graphicspath{{}{../simulations/output_pdfs/}}
+%\pdfsuppresswarningpagegroup=1
+
+\begin{document}
+
+\title{Size Expansions of Mean Field Approximation: Transient and
+  Steady-State Analysis}%
+\author{Nicolas Gast} \orcid{0000-0001-6884-8698}%
+\affiliation{%
+  \institution{Inria, France}%
+  \streetaddress{Univ. Grenoble Alpes, CNRS, LIG}%
+  %\city{Grenoble} %
+  %\state{France} %
+  \postcode{F-38000}%
+}%
+\email{nicolas.gast@inria.fr}
+\author{Luca Bortolussi}
+\affiliation{DMG, University of Trieste, Italy}
+\email{lbortolussi@units.it}
+\author{Mirco Tribastone}
+\affiliation{IMT School for Advanced Studies Lucca, Italy}
+\email{mirco.tribastone@imtlucca.it}
+\date{\today}
+
+
+\begin{abstract}
+  Mean field approximation is a powerful tool to study the performance
+  of large stochastic systems that is known to be exact as the
+  system's size $N$ goes to infinity. Recently, it has been shown
+  that, when one wants to compute expected performance metric in
+  steady-state, this approximation can be made more accurate by adding
+  a term $V/N$ to the original approximation. This is called a
+  \emph{refined} mean field approximation in \cite{gast2017refined}.
+  
+  In this paper, we improve this result in two directions. First, we
+  show how to obtain the same result for the transient regime. Second,
+  we provide a further refinement
+  by expanding the term in $1/N^2$ (both for transient and
+  steady-state regime). Our derivations are inspired by moment-closure
+  approximation, a popular technique in theoretical biochemistry. We
+  provide a number of examples that show: (1) that this new
+  approximation is usable in practice for systems with up to a few
+  tens of dimensions, and (2) that it accurately captures the
+  transient and steady state behavior of such systems.
+\end{abstract}
+
+\maketitle 
+
+\section{Introduction}
+
+Mean field approximation is a widely used technique in the performance
+evaluation community. The focus of this approximation is to study the
+performance of systems composed of a large number of interacting
+objects. Applications range from biological models~\cite{wilkinson2006} to epidemic spreading~\cite{andersson2000} and
+computer-based systems \cite{benaim2008class}. In the performance
+evaluation community, this approximation has successfully been used to
+characterize the performance of CSMA protocols, \cite{cecchi2015mean},
+information spreading algorithms and peer-to-peer networks
+\cite{chaintreau2009age,massoulie1}, caching
+\cite{chen2012projection,fagin1977asymptotic,gast2015transient} or a
+quite popular subject such as load balancing strategies
+\cite{gast2010mean,lu2011join,mitzenmacher1996power,tsitsiklis2011power,vvedenskaya1996queueing,minnebo2,xie1,mitzenmacher2016analyzing}. This
+approximation can be used to study transient (for example the time to
+fill a cache \cite{gast2015transient}) or steady-state properties (for
+example the steady-state hit ratio
+\cite{fagin1977asymptotic,chen2012projection}).
+
+One of the reasons of the success of mean field approximation is that
+it is often very accurate as soon as $N$, the number of objects in the
+system, exceeds a few hundreds. In fact, this approximation can be
+proven to be asymptotically exact as $N$ goes to infinity, see for
+example \cite{kurtz70,kurtz1978strong,benaim2008class,gast2012markov}
+and explicit bounds for the convergence rate exist
+\cite{bortolussi2013bounds,gast2017expected,ying2016rate,ying2017stein}.
+
+Recently, the authors of \cite{gast2017refined} proposed what they
+call a \emph{refined} mean field approximation that can be used to
+characterize more precisely steady-state performance metrics. Their
+refinement uses that for many models, a steady-state expected
+performance metric of a system with $N$ objects $\esp{h(X)}$ is equal
+to its mean field approximation $h(\pi)$ plus a term in $1/N$:
+\begin{align}
+  \label{eq:refined_1/N}
+  \esp{h(X)} = h(\pi) + \frac1NV_{(h)} + o\p{\frac1N},
+\end{align}
+where $\pi$ is the fixed point of the ODE that describes the
+mean field approximation and $V_{(h)}$ is a constant that can be
+easily evaluated numerically.
+
+By using a number of examples, they show that the refined
+approximation $h(\pi) + \frac1NV_{(h)}$ is much more accurate than the
+mean field approximation for moderate system sizes (i.e., a few tens
+of objects).
+
+In this paper, we extend this method in two directions: First we
+generalize Equation~\eqref{eq:refined_1/N} to the transient behavior;
+second we establish the existence of a second order term in
+$1/N^2$ (both in transient and steady-state regimes). More precisely,
+we establish conditions such that for any smooth function $h$, there
+exist constants $V_{(h)}$ and $A_{(h)}$ such that for any time
+$t\in[0;\infty)\cup\{\infty\}$ :
+\begin{align}
+  \label{eq:refined_1/N^2}
+  \esp{h(X(t))} = h(x(t)) + \frac1N V_{(h)}(t) + \frac1{N^2} A_{(h)}(t) +
+  o\p{\frac1{N^2}}.  
+\end{align}
+We show that for the transient regime, $V_{(h)}(t)$ and $A_{(h)}(t)$
+satisfy a linear time-inhomogeneous differential equation that can be
+easily integrated numerically (Theorem~\ref{th:transient}). The
+steady-state constants are directly computed from the fixed point of
+this linear differential equation (Theorem~\ref{th:steady}).
+
+We use Equation~\eqref{eq:refined_1/N^2} to propose two new
+approximations that depend on the system size $N$ and that are
+expansions of the classical mean field approximation to the order
+$1/N$ and $1/N^2$, respectively. We then compare the following three
+approximations numerically on various examples~:
+\begin{itemize}
+\item Mean field approximation: $h(x(t))$.
+\item $1/N$-expansion: $h(x(t))+V_{(h)}(t)/N$;
+\item $1/N^2$-expansion: $h(x(t))+V_{(h)}(t)/N+A_{(h)}(t)/N^2$.
+\end{itemize}
+Our numerical results shows that the two expansions capture very
+accurately the transient behavior of such a system even when
+$N\approx10$. Moreover, they are generally much more accurate than the
+classical mean field approximation for small values of $N$ (for
+transient and steady-state regimes).  Our experiments also confirm
+that good accuracy of the $1/N$-expansion approximation that was
+observed for steady-state values in \cite{gast2017refined}~: In most
+cases, the largest gain in accuracy comes from the $1/N$-term (both
+for the transient and steady-state values).  The $1/N^2$-term does
+improve the accuracy but only marginally.  We also study the limit of
+the method by studying an unstable mean field model that has an
+unstable fixed point. This last example has unique fixed point that is
+not an attractor which means that the classical mean field
+approximation cannot be use for steady-state approximation as shown in
+\cite{benaim2008class}.  We show that in this case, the $1/N$ and
+$1/N^2$ expansions are not stable with time and are therefore
+inaccurate when the time becomes large. 
+
+To summarize, this paper makes theoretical contributions that are
+interesting from a practical perspective~:
+\begin{itemize}
+\item Theoretical contributions -- We show that the $1/N$-expansion
+  proposed in \cite{gast2017refined} for steady-state estimation can
+  be extended to the transient regime and can be refined to the next
+  order correction term in $1/N^2$.
+\item Practical implications -- We show that, despite the complexity
+  of the formulas, it is relatively easy to compute the $1/N$ and
+  $1/N^2$ terms (in the transient and steady-state regimes) for
+  realistic models such as the supermarket model. The developed method
+  is generic and is implemented in a tool \cite{rmfTool2018}.
+\end{itemize}
+
+\paragraph{Roadmap} The rest of the paper is organized as follows. We
+discuss related work in Section~\ref{sec:related}. We describe the
+model in Section~\ref{sec:model}. We develop the main results in
+Section~\ref{sec:theory} where we also provide the proofs.  We show a
+simple malware propagation model in Section~\ref{sec:SIS} in order to
+illustrate the main concepts. We then study the supermarket model in
+more detail in Section~\ref{sec:supermarket}. In
+Section~\ref{sec:limits} we show an example that illustrates the
+limitations of the approach. Finally, we conclude in
+Section~\ref{sec:conclusion}.
+
+\paragraph*{Reproducibility} The code to reproduce the paper --
+including simulations, figures and text -- is available at
+\url{https://github.com/ngast/sizeExpansionMeanField}
+\cite{githubPaper2018}.
+
+\section{Related work}
+\label{sec:related}
+
+Our results apply to the classical density-dependent population
+process of Kurtz \cite{kurtz1978strong} of which the supermarket model
+of \cite{vvedenskaya1996queueing,mitzenmacher1996power} is an
+example.  
+
+\subsection{Stein's Method}
+
+From a methodological point of view, our paper uses an approach
+similar to one of
+\cite{gast2017expected,gast2017refined,kolokoltsov2011mean,ying2016rate,ying2017stein}
+in which the key idea is to compare an asymptotic expansion of the
+generator of the stochastic process with the generator of the mean
+field approximation, by using ideas inspired by Stein's method.  In
+the papers
+\cite{gast2017expected,kolokoltsov2011mean,ying2016rate,ying2017stein},
+this is used to obtain the rate of convergence of mean field models to
+their limit. In \cite{gast2017refined}, this idea is used to compute
+the $1/N$-term for the steady-state behavior. The main theoretical
+contribution of the paper with respect to these is to show that this
+method can be pushed further to study transient regime and to obtain
+exact formula for the term in $1/N^2$.  The work on Stein's method is
+not new \cite{stein1986approximate} but has seen a regain of interest
+in the stochastic networks' community in the recent years thanks to
+the work of \cite{braverman2017stein,braverman2017stein2}.
+
+\subsection{System Size Expansion}
+\label{sec:SSE}
+Our paper is also closely related to an approach developed in the theoretical biology literature, known as system size expansion (SSE). The core idea of SSE dates back to the work of Van Kampen \cite{vankampen2007}, and consists in working with the stochastic process expressing the fluctuations of the population model around the mean field limit, rescaled by $N^{-1/2}$, and approximating it by an absolute continuous process $\xi(t)$ taking real values. Starting from the Kolmogorov equation of the population model, and relying on a perturbation expansion, Van Kampen obtains an Fokker-Plank (FP) equation for $\xi(t)$ containing in the right hand side terms of  order $N^{-p/2}$, for $p=0,1,\ldots$. Keeping only lower order terms (i.e. of order 0 and -1/2) results in a linear FP equation, whose solution is known as the \emph{linear noise approximation}, which is equivalent to the central limit theorem proved by Kurtz \cite{kurtz_book}. 
+
+Grima and coauthors, in \cite{grima2010effective} and following papers (see e.g. \cite{grima2011,ina2012,ina2013}), start from the FP and keep higher order terms of  $\frac{1}{\sqrt{N}}$, introducing non-linear corrections to the linear approximation. The resulting FP cannot be solved exactly, but it can be used to derive differential equations for the mean, covariance, and potentially higher order moments. As far as the mean of the populations is concerned, the equation derived in \cite{grima2010effective,grima2011} shows an equivalent structure with the one obtained in this paper. The higher-order SSE equations, with corrections up to order $N^{-2}$, have been implemented in the tool iNA \cite{ina2012,ina2013}, and more recently in the Matlab toolbox CERENA \cite{CERENA2016}, the only working implementation to the authors' knowledge.
+
+Even if equations for the mean population and for covariance of SSE
+and our method coincide, our approach has some advantanges. First of
+all, its derivation is rigorous and does not rely on any approximation
+of the process $\xi(t)$, being based on a perturbation expansion of
+the moment equations themselves. Secondly, it gives us an approximate
+equation for any function $h$ of the population vector, which can be
+used to estimate higher order moments or hitting times. 
+Finally, in this paper we validate our method with large-dimensional
+models : the $1/N$-expansion can be computed for models with hundreds
+of dimensions and the $1/N^2$-expansion can be computed for models
+with a few tens of dimensions.
+
+
+
+
+
+\subsection{Moment-closure Approximation} 
+
+Our way of deriving the equations is also related to moment closure techniques \cite{gillespie2009moment}, which work by truncating, at a finite order of moments, the exact infinite dimensional system of ODEs which captures the evolution in time of all moments of the population process. The truncation strategy typically assumes some form of the distribution, and uses the relationship among moments implied by that assumption to express high-order moments as a function of lower order ones (e.g. a Gaussian distribution has odd centered moments of order 3 and more all equal to zero). 
+These techniques are in theory applicable to higher order moment --- see for example
+\cite{ale2013general} --- but the approach presented in \cite{ale2013general} seems difficult to apply in high dimensional models, due to the exponential dependence on the order of moments of the number of moment equations. 
+The accuracy of moment closure approximations was studied in \cite{grima2012study}, and more recently in~\cite{schnoerr2014,schnoerr2015}. These studies show that accuracy is subtle and hard to predict, and does not necessarily increase with the population size $N$. 
+The method we present in this paper uses a more rigorous approach, rooted in convergence theorems, which guarantees exactness in the limit of large $N$, and can also be used to provide estimates of moments of any order without extra effort, by choosing proper functions $h$.
+
+
+
+
+
+
+\section{Model and notations}
+\label{sec:model}
+
+\subsection{Density-Dependent Population Processes}
+
+We consider mean field models described by the classical model of
+density-dependent population process of \cite{kurtz70}. A density
+dependent population process is a sequence of continuous time Markov
+chains $\XN$, where the index $N$ is called the size of the
+system. For each $N$, the Markov chain $\XN$ evolves on a subset
+$\E\subset\R^d$, where $d$ is called the \emph{dimension} of the
+model. We assume that there exists a set of vectors $\calL\in \E$ and
+a set of functions $\beta_\bl:\E\to\R^+$ such that $\XN$ jumps from
+$x$ to $x+\bl/N$ at rate $N \beta_\bl(x)$ for each $\bl\in\calL$.
+
+Note that we state all our results using the framework of
+density-dependent population processes. An alternative would have been
+to used a continuous-time version of the discrete-time model of
+\cite{benaim2008class} for which our results can be adapted (see also
+the discussion in Section~2.3 of \cite{gast2017refined}).
+
+
+\subsection{Drift and Mean Field approximation}
+
+We define the drift $f$ as
+\begin{align*}
+  f(x) &= \sum_{\bl\in\calL}\bl\beta_\bl(x) 
+\end{align*}
+The drift is the expected variation of $\XN(t)$ when $\XN(t)=x$.  By
+definition of the model, it is independent of $N$.
+
+In all our results, we will assume that the ordinary differential
+equation (ODE) $\dot{x}=f(x)$ has a unique solution that starts in
+$x(0)$ at time $0$ that we denote $t\mapsto\Phi_tx$. It satisfies:
+$\Phi_tx = x + \int_0^t \Phi_s x ds$.
+When it is not ambiguous, we will denote $x(t):=\Phi_tx$. The function
+$t\mapsto x(t)$ is called the \emph{mean field approximation}.
+
+\subsection{Tensors, Derivatives and Einstein Notations}
+
+Our results rely on tensor computation. To simplify the expression of
+the results and their derivations, we use Einstein notation (also
+known as Einstein summation convention) that we recall here.
+
+All vectors (or tensors) are $d$-dimensional (or of size $d\times d$,
+$d\times \dots\times d$).  For a given vector or tensor, the upper
+indices denote the component. For example, $X^i$ denotes the $i$th
+component of a $d$-dimensional vector $X$, and $C^{ijk}$ denotes the
+$(i,j,k)$ components of a $d\times d \times d$-dimensional tensor
+$C$.  We use the symbol $\otimes$ for the Kronecker product between
+two tensors: for two $d$-dimensional vectors $X$ and $Y$,
+$X\otimes Y$ denotes a $d\times d$-dimensional tensor whose component
+$(i,j)$ is $X^iY^j$. Also, $Y^{\otimes 3}=Y\otimes Y\otimes Y$.
+
+For a given function, the lower indices denote the variable on which
+we differentiate. Unless otherwise stated, the functions will always
+be evaluated at the mean field approximation $x(t)$.  We use uppercase
+letters to denote the function evaluated at $x(t)$.
+To be more precise, this means that the quantity
+$F^{i}_{j_1\dots j_k}$ denotes the $k$th derivative of the $i$th
+component of $f$ with respect to $x^{j_1}\dots x^{j_k}$ evaluated at
+$x(t)$:
+\begin{align*}
+  F^i_{j_1\dots j_k} = \frac{\partial^k{f^i}}{\partial x^{j_1}\dots
+  \partial x^{j_k}}(x(t))
+\end{align*}
+
+We use Einstein summation convention, which implies summation over a
+set of repeated indices: each index variable that appears twice
+implies the summation over all the values of the index. For example
+$F^{i}_j V^j:=\sum_{j} F^{i}_jV^j$ and
+$F^{i}_{j,k,\ell}B^{k,\ell} := \sum_{k,\ell}
+F^{i}_{j,k,\ell}B^{k,\ell}$. This convention greatly compactifies and
+therefore simplifies the expression of our results.
+
+For a given $d^{\times k}$ tensor $T$, we denote by $\Sym(T)$ the
+symmetric part of a tensor, which is the summation of this tensor over
+all permutation of indices. Its $(i_1\dots i_k)$-component is:
+\begin{align*}
+  \Sym(T)^{i_1\dots i_k} =
+  \frac1{k!}\sum_{\sigma\in\mathfrak{S}_k}T^{i_{\sigma_1}\dots
+  i_{\sigma_k}},
+\end{align*}
+where $\mathfrak{S}_k$ is the symmetric group on $k$ elements.
+
+
+\subsection{Summary of the Assumptions}
+
+In order the prove our results for the transient regime, we will use
+the following assumptions. 
+\begin{itemize}
+\item[(A1)] The sequence of stochastic processes $\XN$ is a density
+  dependent process that evolves in a compact subset of
+  $\E\subset\R^d$.
+\item[(A2)] The drift function $f(x)$ is well defined and continuously
+  differentiable four times. The function
+  $q(x)=\sum_{\bl\in\calL}\bl\otimes\bl \beta_\bl(x)$ is well defined
+  and continuously differentiable twice. The function
+  $r(x)=\sum_{\bl\in\calL}\bl\otimes\bl\otimes \bl \beta_\bl(x)$ is
+  well defined and continuous.
+\end{itemize}
+Note that assumption (A2) on the differentiability of the drift,
+combined with assumption (A1) on the compactness of $\E$ implies that
+the drift is Lipschitz-continuous and bounded and that therefore the
+differential equation $\dot{x}=f(x)$ has a unique solution. These
+assumptions are mainly technical and are verified by many of the mean
+field models of the literature.
+
+For the steady-state analysis, we will assume in addition:
+\begin{itemize}
+\item[(A3)] For each $N$, the stochastic process $\XN$ has a unique
+  stationary distribution.
+\item[(A4)] The differential equation $\dot{x}=f(x)$ has a unique
+  fixed point $\pi$ that is a globally exponentially stable attractor,
+  meaning that there exists two constants $a,b>0$ such that for all
+  $x\in\E$:
+  \begin{align*}
+    \norm{\Phi_t(x) - \pi} \le a e^{-bt}. 
+  \end{align*}
+\end{itemize}
+Assumption (A3) combined with the existence of a globally stable
+attractor is a natural condition when one wants to show that a
+stochastic model converges to the fixed point of its mean field
+approximation (this is often a necessary condition, as shown in
+\cite{benaim2008class,cho2012asymptotic}). The exponential stability
+of this attractor is a natural condition to obtain rate of convergence
+for mean field models \cite{ying2016rate,gast2017expected}.  Proving
+that a fixed point is an attractor is often difficult but showing that
+this attractor is exponentially stable is often much easier since it
+only depends on the eigenvalue properties of the Jacobian evaluated at
+the fixed point $\pi$.
+
+\section{Main results}
+\label{sec:theory}
+
+In this section, we provide the main theoretical results. We start by
+stating the results for the transient case (\S\ref{ssec:transient}),
+and the steady-state case (\S\ref{ssec:ss}). We then comment on the
+numerical feasibility of the approach (\S\ref{ssec:numerical}) and we
+finish with the proofs (\S\ref{ssec:proofs}).
+
+\subsection{Transient Analysis}
+\label{ssec:transient}
+
+The main result of our analysis is Theorem~\ref{th:transient}, which
+characterizes how the moments of the difference between the stochastic
+system $X(t)$ and its mean field approximation evolve with time. We
+show that each of these moments admits an expansion with a first term
+in $1/N$ and a second term in $1/N^2$. The constants of this
+asymptotic expansion are characterized by a system of linear ODEs. One
+of the direct consequence of this theorem is
+Corollary~\ref{coro:moment} that provides an asymptotic expansion of
+the mean and the variance of $\XN$.
+
+
+
+\begin{theorem}
+  \label{th:transient}
+  Under assumption (A1-A2), let $x(t)$ denote the unique solution of
+  the ODE $\dot{x}=f(x)$ starting in $X^N(0)$. There exists a series
+  of time-dependent tensors $V,W$, $A$, $B$, $C$ and $D$ such that,
+  for any four-time differentiable function $h:\R^d\to\R$, we have:
+  \begin{align}
+    \label{eq:rr_h}
+    &\esp{h(\XN(t))} = h(x(t)) + \frac1N\left(H_i V^i +
+      \frac12H_{ij}W^{ij}\right)\\
+    \nonumber
+    &\quad+\frac1{N^2}\Big(H_iA^i+\frac12H_{ij}B^{ij}+\frac16H_{ijk}C^{ijk}+\frac1{24}H_{ijk\ell}D^{ijkl}\Big)+o\Big(\frac1{N^2}\Big),
+      \nonumber
+  \end{align}
+  where the terms $H_i\dots H_{ijk\ell}$ denotes the first to fourth
+  derivative of $h$ evaluated at $x(t)$. 
+  
+  The dimension of the tensors $V$ and $A$ is $n$; the dimension of
+  $W$ and $B$ is $n\times n$; the dimension of $C$ is
+  $n\times n\times n$; the dimension of $D$ is
+  $n\times n \times n \times n$.  For the $1/N$-terms, these tensors
+  satisfy the following ODE system (with the initial conditions $V=0$
+  and $W=0$):
+  \begin{align*}
+    \dot{V}^i &= F^i_jV^j + \frac12F^i_{j,k} W^{j,k}\\
+    \dot{W}^{i,j} &= F^i_kW^{k,j}+F^j_kW^{k,i} + Q^{i,j}
+              = \Sym\Big(2F^{i}_kW^{kj}\Big) + Q^{ij}
+  \end{align*}
+  For the $1/N^2$-terms, the ODE system is as follows (with the
+  initial conditions $A=0$,$B=0$, $C=0$ and $D=0$)
+  \begin{align*}
+    \dot{A}^i &= F^i_{j}A^j + \frac12F^{i}_{j,k}B^{j,k} + \frac16F^i_{j,k,\ell}C^{j,k,\ell}
+                + \frac1{24}F^i_{j,k,\ell,m}D^{j,k,\ell,m}\\
+    \dot{B}^{ij} &= \Sym\Big(2F^{i}_kB^{kj} + F^{i}_{k\ell} C^{k\ell j} +
+                   \frac13 F^{i}_{k\ell m} D^{k\ell mj}\Big)\\
+              &\qquad+ Q^{ij}_kV^k +
+                \frac12Q^{ij}_{k\ell}W^{k\ell}\\
+    \dot{C}^{ijk}&=\Sym\Big(3F^{i}_{\ell}C^{\ell jk} + \frac32
+                   F^{i}_{\ell m}D^{\ell mjk} + 
+                   3Q^{ij}V^{k}+3Q^{ij}_\ell W^{\ell k}\Big) + 
+                   R^{ijk}\\ 
+    \dot{D}^{ijk\ell} &= \Sym\Big(4 F^{i}_mD^{mjk\ell} +
+                        6Q^{ij}W^{k\ell}\Big).
+  \end{align*}
+  where the symmetric $d\times d$ tensor $Q$ and $d^{\times3}$ tensor
+  $R$ are:
+  \begin{align}
+    Q &= \sum_{\bl\in\calL} (\bl\otimes\bl) \beta_{\bl}(x(t))\label{eq:Q}\\
+    R &= \sum_{\bl\in\calL} (\bl\otimes\bl\otimes\bl) \beta_{\bl}(x(t));
+        \label{eq:R}
+  \end{align}
+  The tensors $Q_k$ and $Q_{k,\ell}$ correspond to the first and
+  second derivatives of the function
+  $x\mapsto \sum_{\bl\in\calL}\bl\otimes\bl\beta_{\bl}(x)$, evaluated in
+  $x(t)$:
+  \begin{align*}
+    Q_k &= \frac{\partial}{\partial x^k}\sum_{\bl\in\calL} (\bl\otimes\bl)
+          \beta_{\bl}(x(t)) \\
+    Q_{k,\ell} &= \frac{\partial^2}{\partial x^k\partial
+                  x^\ell}\sum_{\bl\in\calL} (\bl\otimes\bl) \beta_{\bl}(x(t)).
+  \end{align*}
+\end{theorem}
+
+To prove this theorem, we will first prove the existence of the
+tensors and then will show that they satisfy the corresponding set of
+ODEs by computing how the moments evolve with time. In fact, an
+equivalent characterization of the tensors $V$, $W$,...  is to use
+these tensors to construct asymptotic expansions of the moments of
+$\XN(t)-x(t)$. This is summarized in Corollary~\ref{coro:moment}, which
+also has an interest in its own.  This corollary also justifies why
+moment closure works: neglecting the first moment of $\XN(t)-x(t)$
+gives the mean field approximation, neglecting the moment three and
+above gives the expansion of order $1/N$; finally neglecting the moments
+five and above gives the expansion of order $1/N^2$. In theory, it
+should be possible to continue the asymptotic expansion but the at the
+price of a much higher complexity in the expressions.
+In the numerical examples, we will show that the asymptotic
+development of the expectation provides a very accurate
+estimation of the true expectation in many cases.
+\begin{coro}
+  \label{coro:moment}
+  Under the assumption of Theorem~\ref{th:transient}, we have
+  \begin{align*}
+    \esp{\XN(t)-x(t)} &= \frac1N V(t) + \frac1{N^2} A(t) + o(1/{N^2})\\
+    \esp{(\XN(t)-x(t))^{\otimes 2}} &= \frac1N W(t) + \frac1{N^2} B(t) + o(1/{N^2})\\
+    \esp{(\XN(t)-x(t))^{\otimes 3}} &=  \frac1{N^2} C(t) + o(1/{N^2})\\
+    \esp{(\XN(t)-x(t))^{\otimes 4} } &= \frac1{N^2} D(t) + o(1/{N^2})\\
+    \esp{(\XN(t)-x(t))^{\otimes k}} &= o(1/N^2) \text{\qquad for $k\ge5$}.
+  \end{align*}
+  In particular:
+  \begin{align*}
+    \mathrm{cov}(\XN(t),\XN(t)) &= \frac1N W(t) + \frac1{N^2}(B(t) -
+                              V(t)\otimes V(t))+o(1/N^2). 
+  \end{align*}
+\end{coro}
+\begin{proof}
+  The first set of equation is a direct consequence of
+  Theorem~\ref{th:transient} applied to the functions
+  $h(X)=(X-x)^{\otimes k}$ for $k=1,2\dots$.
+  
+  For the covariance, we have :
+  \begin{align*}
+    \mathrm{cov}(\XN(t),\XN(t))
+    &= \esp{(\XN(t)-x(t)+x(t)-\esp{\XN(t)})^{\otimes 2}}\\
+    &= \esp{(\XN(t)-x(t))^{\otimes2}} - (x(t)-\esp{\XN(t)})^{\otimes2}\\
+    &= \frac1NW(t) + \frac1{N^2}(B(t)-V(t)\otimes V(t))+o(1/N^2). 
+  \end{align*}
+\end{proof}
+
+
+\subsection{Steady-State Regime}
+\label{ssec:ss}
+
+We now turn our attention to the steady-state regime. The next theorem
+shows that when the system in the mean field approximation has a
+unique attractor, then the tensors of Theorem~\ref{th:transient} have
+a limit as $t$ goes to infinity, and this limit can be used to
+obtain an asymptotic expansion in $1/N$ and $1/N^2$ in
+steady-state. For $V$ and $W$, these equations are the same as ones
+developed in~\cite{gast2017refined}. The novelty of this result is the
+$1/N^2$-expansion.
+
+\begin{theorem}
+  \label{th:steady}
+  In addition to the assumption of Theorem~\ref{th:transient}, assume
+  (A3) and (A3). Then the ODE of Theorem~\ref{th:transient} also has
+  a unique attractor. Moreover, in steady state for any four times
+  differentiable function $h:\R^d\to\R$, one has:
+  \begin{align*}
+    &\esp{h(\XN)}=h(\pi) + \frac1N\p{ H_iV^i + \frac12 H_{ij}W^{ij}}\\
+    &\quad+\frac1{N^2}\Big(H_iA^i+\frac12H_{ij}B^{ij}+\frac16H_{ijk}C^{ijk}+\frac1{24}H_{ijk\ell}D^{ijkl}\Big)+o\Big(\frac1{N^2}\Big), 
+  \end{align*}
+  where the terms $H_i\dots H_{ijk\ell}$ denotes the first to fourth
+  derivative of $h$ evaluated at the fixed point $\pi$ and where the
+  tensors satisfy the following system of linear equations:
+  \begin{align*}
+    2\Sym\Big(F^{i}_kW^{kj}\Big) & = -Q^{ij} &  F^i_jV^j & = \frac12F^i_{jk} W^{jk}
+  \end{align*}
+  and 
+  \begin{align*}
+    &4\Sym(F^{i}_mD^{mjk\ell})
+    = - 6\Sym(Q^{ij}W^{k\ell})\\
+    &3\Sym(F^{i}_{\ell}C^{\ell jk})
+    = -\p{\Sym\p{\frac32F^i_{\ell m}D^{\ell
+      mjk}+3Q^{ij}V^{k}+3Q^{ij}_\ell W^{\ell k}} + R^{ijk}}\\  
+    &2\Sym(F^{i}_kB^{kj})=-\Sym\Big(F^{i}_{k\ell} C^{k\ell j} {+}
+    \frac13 F^{i}_{k\ell m} D^{k\ell mj}{+} Q^{ij}_kV^k {+}\frac12Q^{ij}_{k\ell}W^{k\ell}\Big)\\
+    &F^i_{j}A^j = -\p{\frac12F^{i}_{jk}B^{jk} + \frac16F^i_{jk\ell}C^{jk\ell}
+    + \frac1{24}F^i_{jk\ell m}D^{jk\ell m}}
+  \end{align*}
+  where $Q$, $R$, $Q_k$ and $Q_{k\ell}$ are evaluated at the fixed
+  point $\pi$.
+\end{theorem}
+
+Also, as we will see in the proof, under the condition of
+Theorem~\ref{th:steady}, the convergence as $N$ goes to infinity of
+Equation~\eqref{eq:rr_h} is uniform in time. This is not necessarily
+the case when the mean field approximation does not have an attractor
+(see Section~\ref{sec:limits}).
+
+\subsection{Computational Issues and Implementation}
+\label{ssec:numerical}
+
+\subsubsection{Transient Analysis}
+
+For a given mean field model, the ODE $\dot{x}=f(x)$ is an ODE of
+dimension $d$. As the drift $f$ is in general non-linear, the solution
+$x(t)$ can rarely be computed in closed form but can be easily
+computed numerically for high dimensional models. Once the solution
+$x(t)$ is computed, the system of ODEs for $V$, $W$, $A$, $B$, $C$ and
+$D$ given by Theorem~\ref{th:transient} is a system of linear ODEs
+with time-varying parameters.
+
+The system of ODEs for $V$ and $W$ do not depend on $A$, $B$, $C$,
+$D$. It is therefore possible to compute the $1/N$ terms $V(t)$ and
+$W(t)$ by numerically integrating a system of $O(d^2)$ variables. The
+computation of the $1/N^2$ terms is more complicated because  $D$ 
+has $d^4$ variables. This makes the computation of the
+$1/N^2$ terms feasible for $d$ of at most a few tens. 
+
+\subsubsection{Fixed-Point Analysis}
+
+The computation of the fixed point of Theorem~\ref{th:steady} can also
+be solved by a numerical algorithm: The constants $V$ to $D$ are the
+solutions of a system of linear equations.
+
+For the $1/N$-term, these equations are the same as the ones
+developed in~\cite{gast2017refined} and can therefore be solved in
+$O(d^3)$ time in two steps:
+\begin{itemize}
+\item First, we obtain the matrix $W$ from the solution of the Lyapunov equation
+  $MW + (MW)^T = Q$ for some matrix $M$.
+\item Second, the vector $V$ is the solution of a linear system of
+  equations of dimension $d$. 
+\end{itemize}
+The most costly step of the above is the computation of the
+solution of the Lyapunov equation, which can be done in $O(d^3)$ time by
+using the Bartels-Stewart algorithm~\cite{bartels1972solution}. 
+
+Once the terms $V$ and $W$ have been computed, one can compute the
+tensors $D,C,B,A$ (in this order) by exploiting the fact that the equation for $D$
+does not depend $A,B,C$ (similarly, the equation for $C$ does not
+depend on $A$ and $B$; the equation for $B$ does not depend on
+$A$). Each is a system of linear
+equations with respectively $d^4$, $d^3$, $d^2$ and $d$ variables.
+For $D$ and $C$, the system is a generalization of the classical
+Lyapunov equation $MW+(MW)^T=Q$ to higher order tensors.
+Although the system of linear equations is large, in our numerical
+examples  we were able to solve these equations for system as large as
+$d=50$ dimensions in less than $20$ seconds (which corresponds for $D$
+to a linear system with $50^4=6.25\times10^6$ unknowns).
+
+\subsubsection{Implementation}
+
+To compute numerically the mean field expansions, we implemented a
+generic tool in \texttt{Python} that can construct and solve the above
+equation. The tool is available at
+\url{https://github.com/ngast/rmf_tool/} \cite{rmfTool2018}.  It takes as an input a description of the model and uses symbolic
+differentiation to construct the derivatives of the drift and of the
+functions $Q$ and $R$.
+
+The tool uses the function
+\texttt{integrate.solve\_ivp} of the library \texttt{scipy}~\cite{scipy} to numerically integrate the ODEs for computing $V(t)$ and $W(t)$ of Theorem~\ref{th:transient}.  For the steady-state analysis, the tool uses the python
+library \texttt{scipy.sparse} to construct a sparse system of linear
+equations and the function \texttt{scipy.sparse.linalg.lgmres} to
+solve the sparse linear system.
+
+Note that the use of symbolic differentiation makes the computation
+slow for large models. Hence, for the supermarket model, we directly
+implemented Python functions that compute the drift of the system and
+its derivative. All our specific implementation is available in the
+git repository of the paper \cite{githubPaper2018}.
+
+
+
+\begin{figure}[ht]
+  \centering
+  \begin{tabular}{@{}c@{}c@{}c@{}}
+    %Order $1/N$
+    \includegraphics[width=.45\linewidth]{jsqD_computationTime_order1_transient}
+    &\includegraphics[width=.45\linewidth]{jsqD_computationTime_order1_steadyState}\\
+    (a) Transient (order $1/N$) & (b) Steady-state (order $1/N$)\\
+    %Order $1/N^2$
+    \includegraphics[width=.45\linewidth]{jsqD_computationTime_order2_transient}
+    &\includegraphics[width=.45\linewidth]{jsqD_computationTime_order2_steadyState}\\
+    (c) Transient (order $1/N^2$) & (d) Steady-state (order $1/N^2$)
+  \end{tabular}
+  \caption{Supermarket : time to compute the approximation as a
+    function of the number of dimension $d$. We compare the
+    $1/N$-expansion (first line) and the $1/N^2$-expansions. }
+  \label{fig:computationTime}
+\end{figure}
+
+  
+\subsubsection{Analysis of the computation time}
+
+
+  To give a flavor of the numerical complexity of the method, we report
+in Figure~\ref{fig:computationTime} the time taken by our algorithm to
+compute the expansions for the supermarket model described in
+Section~\ref{sec:supermarket}. This figure shows the computation time
+as a function of the number of dimensions of the model $d$. It contains
+four panels that correspond to: 
+\begin{itemize}
+\item[(a)] The time to compute $V(t)$ and $W(t)$ for $t\in[0,10]$.
+\item[(b)] The time to compute $V$ and $W$ of
+  Theorem~\ref{th:steady}.
+\item[(c)] The time to compute $A(t)$, $B(t)$, $C(t)$ and $D(t)$ for
+  $t\in[0,10]$. 
+\item[(d)] The time to compute $A$, $B$, $C$ and $D$ of
+  Theorem~\ref{th:steady}. 
+\end{itemize}
+We observe that, as expected, computing the time-varying constants of
+the transient regime is more costly than solving the fixed point
+equations because it requires solving an ODE: for a given time
+budget, one can compute the steady-state constants for a system of
+doubled size.  Moreover, these results show that the computation of
+the $1/N$-terms $V(t)$ and $W(t)$ can be done for models with hundreds
+of dimensions in $10$ seconds. With the same constraints of $10$
+seconds, the $1/N^2$-terms can be computed for models with a few tens
+of dimensions.
+
+Note that we only provide this figure for the supermarket model
+because, among our three examples, it is the only one for which we can
+vary the dimension by changing the maximal queue
+lengths. We believe that the computation time does not grow too much
+with the dimension because the tensors corresponding to the
+derivatives of the drift or of the matrix $Q$ are relatively
+sparse. The computation time might be higher for a model with denser
+tensors.  
+
+
+\subsection{Proofs}
+\label{ssec:proofs}
+
+To simplify the notation, where it is not needed in the proofs, we
+drop the superscript $N$ and denote $X$ instead of $\XN$.
+
+\subsubsection{Proof of Theorem~\ref{th:transient}}
+
+The proof of Theorem~\ref{th:transient} is divided in two parts. We
+first we show the existence of the constants $A$, $B$,\dots{} Second
+we show how to derive the ODE that they satisfy.
+
+\textbf{Existence of $V$, $W$} -- Here, we again use the notation
+$\Phi_sx$ to denote the value at time $s$ of the solution of the ODE
+$\dot{x}=f(x)$ that starts in $x$ at time $0$.  According to
+\cite[Equation~(19)]{gast2017expected} for any function $h:\E\to\R$,
+we have
+  \begin{align}
+    &N\esp{h(\Phi_tx)-h(\XN(t)) \mid \XN_0=x}\nonumber\\
+    &\qquad=\int_0^t\esp{\DeltaN h\circ\Phi_s(\XN(t-s))\mid
+      \XN_0=x}ds,
+      \label{eq:deltaN_transient}
+  \end{align}
+  where $\DeltaN$ is the operator that, for a function $g$, gives the function $\DeltaN g$ defined by: 
+  \begin{align}
+    \label{eq:deltaN}
+    (\DeltaN g) (x) = N\sum_{\bl\in\calL} \beta_{\bl}(x) (N(g(x+\frac\bl
+    N)-g(x))-g_j(x)\bl^j),
+  \end{align}
+  where we recall the use of Einstein summation convention :
+  $g_j(x)\bl^j=\sum_{j=1}^d(\partial g(x)) / (\partial x^j)\bl^j$.
+  
+  By using a Taylor expansion of $g$ in the above equation, for a
+  function $g:\R^n\to\R$ that is twice differentiable, we have
+  \begin{align}
+    \label{eq:deltaN_dev1}
+    \DeltaN g (x) &=\frac12\sum_{\bl\in\calL} \beta_{\bl}(x)
+                    g_{ij}(x)\bl^i\bl^j + o(1/N),
+  \end{align}
+  where the hidden constant in the $o(1/N)$ depends on the modulus of
+  continuity of the second derivative of $g$. 
+  
+  This shows that Equation~\eqref{eq:deltaN_transient} equals
+  \begin{align*}
+    &\esp{\int_0^t\frac12\sum_{\bl\in\calL}\beta_\bl(\XN(t{-}s))(h\circ\Phi_s)_{ij} 
+      (\XN(t{-}s)) \bl^i\bl^jds} + o\p{\frac1N},
+  \end{align*}
+  where $(h\circ\Phi_s)_{ij}(\Phi_{t-s}x)$ denotes the second
+  derivative of $h\circ\Phi_s$ with respect to $x^i$ and $x^j$
+  evaluated at $\Phi_{t-s}x$. Again, the hidden constant in the
+  $o(1/N)$ depends on the modulus of continuity of the second
+  derivative of $(h\circ\Phi_s)$ which is finite for any time $t$
+  because of Assumption~(A2).
+
+  As $\XN(t{-}s)$ converges weakly to $\Phi_{t-s}x$ as $N$ goes to
+  infinity, the above quantity (to which
+  Eq.\eqref{eq:deltaN_transient} is equal) yields
+  \begin{align}
+    \text{Eq.\eqref{eq:deltaN_transient}}
+    &=\int_0^t\frac12\sum_{\bl\in\calL}\beta_\bl(\Phi_{t-s}x)(h\circ\Phi_s)_{ij}
+      (\Phi_{t-s}x) \bl^i\bl^jds + o(1/N).
+      \label{eq:6+}
+  \end{align}
+  In the quantity $(h\circ\Phi_s)_{ij}(\Phi_{t-s}x)$, the only
+  dependence in $h$ is a linear combination of the first and second
+  derivative of $h$ evaluated at $\Phi_tx$. Indeed, by the chain rule,
+  for two functions $g$ and $h$, the first and second derivative of
+  $g\circ h$ evaluated in $y$ is
+  \begin{align*}
+    (h\circ g)_{i}  &= (h_k\circ g)g^k_i \\
+    (h\circ g)_{ij} &= (h_{k\ell}\circ g)g^{k}_ig^{\ell}_j +
+                      (h_k\circ g)g^k_{ij} 
+  \end{align*}
+    Replacing $g$ by $\Phi_{s}x$ and evaluating the function is
+  $\Phi_{t-s}x$ shows that the second derivative of $h\circ\Phi_s$
+  evaluated in $\Phi_{t-s}x$ is : 
+  \begin{align*}
+    (h\circ\Phi_s)_{ij}(\Phi_{t-s}x)
+    &= h_{k\ell}(\Phi_tx) (\Phi_s)^{k}_i(\Phi_{t-s}(x)) (\Phi_s)^k_j(\Phi_{t-s}(x)) \\
+    &\qquad+ h_k(\Phi_tx)(\Phi_s)^{k}_{i,j}(\Phi_{t-s}(x)).
+  \end{align*}
+  Plugging this into Equation~\eqref{eq:6+} shows that
+  Equation~\eqref{eq:deltaN_transient} is equal to:
+  \begin{align*}
+    & h_{k\ell}(\Phi_tx)
+      \underbrace{\frac12\int_0^t\sum_{\bl\in\calL}\beta_\bl(\Phi_{t-s}x)
+    (\Phi_s)^{k}_i(\Phi_{t-s}(x))
+    (\Phi_s)^k_j(\Phi_{t-s}(x))\bl^i\bl^jds}_{=: W^{k\ell}(t)} \\
+    &+h_k(\Phi_tx)\underbrace{\frac12\int_0^t\sum_{\bl\in\calL}\beta_\bl(\Phi_s)^{k}_{i,j}(\Phi_{t-s}(x))\bl^i\bl^jds}_{=:V^k(t)} + 
+      o(1/N).
+  \end{align*}
+  This implies the existence of $V(t)$ and $W(t)$ in
+  Equation~\eqref{eq:rr_h}.
+
+  \textbf{Existence of $A$\dots $D$} -- The proof of the existence of
+  the terms $A$ to $D$ is similar. Hence, for space constraints we
+  only sketch the main differences. The first ideas is to refined the
+  expansion~\eqref{eq:deltaN_dev1} to
+  \begin{align}
+    \DeltaN g (x) &=\frac12\sum_{\bl\in\calL} \beta_{\bl}(x)
+                    g_{ij}\bl^i\bl^j + \frac1{6N}\sum_{\bl\in\calL} \beta_{\bl}(x)
+                    g_{ijk}\bl^i\bl^j\bl^k+ o(\frac{1}{N^2}).
+                    \label{eq:deltaN_development}
+  \end{align}
+  This shows that Equation~\eqref{eq:deltaN_transient} equals
+  \begin{align*}
+    &\esp{\int_0^t\frac12\sum_{\bl\in\calL}\beta_\bl(\XN(t{-}s))(h\circ\Phi_s)_{ij}
+      (\XN(t{-}s)) \bl^i\bl^jds} \\
+    & {+} \esp{\!\frac1{6N}\int_0^t\!\!\!\sum_{\bl\in\calL} \beta_{\bl}(\XN(t{-}s))
+      (h\circ\Phi_s)_{ijk}(\XN(t{-}s))\bl^i\bl^j\bl^kds}
+           {+}o\Big(\frac1{N^2}\Big).
+  \end{align*}
+  In the above equation, the second term is of order $1/N$ and
+  involves the derivative up to order three of $h$. The first term is
+  equal to \eqref{eq:deltaN_transient} plus a correction term of order
+  $1/N$ that involves the derivative up order four of $h$ (evaluated
+  at $\Phi_tx$).
+  
+  \textbf{Derivation of the ODEs} -- The evolution of the stochastic
+  process $X(t)-x(t)$ can be decomposed in two parts : a jump part due
+  to the fact that $X(t)$ jumps to $X(t)+\bl/N$ at rate
+  $N\beta_\bl(X(t))$ and a drift part due to the fact $x(t)$ satisfies
+  the ODE $\dot{x}=f(x)$. This shows that for any function $h$, one
+  has :
+  \begin{align*}
+    &\dt\esp{h(X(t)-x(t))}\\
+    &=\sum_{\bl\in\calL}\esp{\p{h(X(t)-x(t)+\frac{\bl}{N})-h(X(t)-x(t))}N\beta_{\bl}(X(t))}\\ 
+    &\qquad -\esp{ h_j(X(t)-x(t))f^j(x(t))}. 
+  \end{align*}
+  In the above equation, the first line corresponds to the stochastic
+  jumps of $X(t)$ while the second line corresponds the continuous
+  variation of $x(t)$. 
+  
+  Applying the above equation\footnote{In the remainder of the proof,
+    we drop the dependence in $t$ in most of the proof and write $X$
+    instead of $X(t)$ and $x$ instead of $x(t)$.}  to the function
+  $h(X)=(X-x)^{\otimes k}$ shows that : 
+  \begin{align}
+    \dt&\esp{(X-x)^{\otimes k}}
+    \\
+       &=\sum_{\bl\in\calL}\esp{\p{\Big(X-x+\frac{\bl}{N}\Big)^{\otimes
+         k}-(X-x)^{\otimes k}}N\beta_{\bl}(X)} \nonumber\\ 
+       &\qquad\qquad\qquad\quad - k\Sym\p{f(x)\otimes\esp{(X-x)^{\otimes
+         k-1}}}\nonumber\\
+       &=\sum_{m=1}^k\binom{k}{m} \Sym\p{\esp{\frac{1}{N^{m-1}}\bl^{\otimes
+         m}\beta_{\bl}(X)\otimes(X-x)^{\otimes k-m} }}\nonumber\\
+       &\quad - k\Sym\p{f(x)\otimes\esp{(X-x)^{\otimes
+         k-1}}}\nonumber\\ 
+       &=k\Sym\p{\esp{\p{f(X)-f(x)}\otimes (X-x)^{\otimes
+         k-1}}} \nonumber\\
+       &\quad + \sum_{m=2}^k\binom{k}{m}
+         \Sym\p{\esp{\frac{1}{N^{m-1}}\bl^{\otimes 
+         m}\beta_{\bl}(X)\otimes(X-x)^{\otimes k-m} }}
+      \label{eq:(X-x)k}
+  \end{align}
+
+  The the existence of the constants $V$, $W$, $A$\dots $D$ combined
+  with Equation~\eqref{eq:(X-x)k} show that the derivative of
+  $\esp{(X(t)-x(t))^{\otimes k}}$ admits an asymptotic expansion with a
+  first term in $1/N$ and a second term in $1/N^2$.  We are now ready
+  to compute how the constants $V$, $W$, $A$... $D$ evolve with time
+  by computing the derivative with respect to time of
+  $\esp{(X-x)^{\otimes k}}$ for $k\in\{1\dots4\}$ and identifying the
+  $1/N$ and $1/N^2$ terms.
+
+  \textbf{1.} Case $\esp{X-x}$ -- By using Equation~\eqref{eq:(X-x)k},
+  we have :
+  \begin{align*}
+    \dt \esp{X-x}&=\esp{f(X)-f(x)}.
+  \end{align*}
+  Applying \eqref{eq:rr_h} to the function $h(X)=f^i(X)-f^i(x(t))$
+  implies that
+  \begin{align*}
+    \dt &\esp{X^i-x^i} = \frac1N (F^i_jV^j + \frac12F^i_{jk} W^{jk}) \\
+        & + \frac1{N^2} (F^i_jA^j + \frac12F^i_{jk} B^{jk}+
+          \frac16F^i_{jkl} C^{jkl}+ \frac1{24}F^i_{jklm} D^{jklm})+o(\frac1{N^2})
+  \end{align*}
+  Using that $\dt\esp{X^i-x^i}=V^i/N+A^i/N^2+o(1/N^2)$ and identifying
+  the $O(1/N)$ and $O(1/N^2)$ terms shows that:
+  \begin{align*}
+    \dt V^i &= F^i_jV^j + \frac12F^i_{jk} W^{jk}\\
+    \dt A^i &= F^i_{j}A^j + \frac12F^{i}_{jk}B^{jk} + \frac16F^i_{jk\ell}C^{jk\ell}
+              + \frac1{24}F^i_{jk\ell m}D^{jk\ell m}
+  \end{align*}
+
+  \textbf{2.} Case $\esp{(X-x)^{\otimes 2}}$ -- By using
+  \eqref{eq:(X-x)k}, we have
+  \begin{align*}
+    \dt\esp{(X-x)^{\otimes2}} &=2\Sym(\esp{(f(X)-f(x))\otimes
+                                (X-x)}) 
+                              + \frac1N\esp{q(X)},
+  \end{align*}
+  where $q(X)$ is a covariance matrix defined by
+  \begin{align*}
+    q(X) = \sum_{\bl\in\calL} \beta_{\bl}(X)\bl\otimes\bl
+  \end{align*}
+  For the first term, we consider the function\footnote{Recall that
+    the exponent ${}^{ij}$ stands for the component $(ij)$.}
+  $h(X)=((f(X)-f(x))\otimes (X-x))^{ij}$ and we use
+  Lemma~\ref{lemma:product_rule}(i). The first derivative of this
+  function $h$ evaluated at $x$ is $0$. The second derivative of $h$
+  with respect to $x^k$ and $x^\ell$ is $2\Sym(F_k\otimes \J{\ell})$,
+  where $\J{\ell}$ is the matrix whose $(\ell,\ell)$-element is one,
+  the others being zero. The third derivative with respect to $x^k$,
+  $x^\ell$ and $x^m$ is equal to $3\Sym(F_{k\ell}\otimes \J{m})$. The
+  fourth derivative with respect to $x^k$, $x^\ell$, $x^m$ and $x^n$
+  is $4\Sym(F_{k\ell m}\otimes \J{n})$.
+
+  Hence, applying Equation~\eqref{eq:rr_h} to $h$ hows that
+  \begin{align*}
+    \dt &\esp{\Sym(((f(X)-f(x))\otimes (X-x))^{ij})}\\
+        &=\Sym\Big(\frac{2}{2}F^i_k (\frac1NW^{kj}+\frac1{N^2}B^{kj}) 
+          + \frac{3}{6N^2} F^i_{k\ell} C^{k\ell j} \\
+        &\qquad+ \frac{4}{24N^2} F^i_{k\ell m} D^{k\ell mj} \Big)
+  \end{align*}
+  For the second term, applying \eqref{eq:rr_h} to the function $q$
+  shows that
+  \begin{align*}
+    \esp{q^{ij}(X)} &= Q^{ij} + \frac{1}{N} Q^{ij}_kV^k + \frac1{2N}
+                          Q^{ij}_{k\ell}W^{k\ell} + O(1/N^2). 
+  \end{align*}
+  This shows that:
+  \begin{align*}
+    \dot{W}^{ij} &= 2\Sym(F^i_kW^{kj}) + Q^{ij}\\
+    \dot{B}^{ij} &= \Sym\Big(2F^i_kB^{kj} + 
+                    F^{i}_{k\ell}C^{k\ell j}
+                    + \frac13F^i_{k\ell m}D^{k\ell mj} \\
+                  &\qquad\qquad+ Q^{ij}_{k}V^{k} +
+                    \frac12Q^{ij}_{k\ell}W^{k\ell}\Big). 
+  \end{align*}
+  
+  \textbf{3.} By using \eqref{eq:(X-x)k}, with
+  $\esp{(X-x)^{\otimes3}}$, we have :
+  \begin{align}
+    \dt &\esp{(X-x)^{\otimes3}}
+          =3\Sym(\esp{(f(X)-f(x))\otimes (X-x)^{\otimes2}})\nonumber\\
+        &\qquad\qquad+\frac3N\Sym(\esp{q(X)\otimes(X-x)})
+          + \frac1{N^2}\esp{r(X)},
+          \label{eq:dotC_proof}
+  \end{align}
+  where $r(x)=\sum_{\bl\in\calL} \bl^{\otimes3}\beta_\bl(x)$.
+  
+  To study the first term of Equation~\eqref{eq:dotC_proof}, we
+  consider the function
+  $h(X)=((f(X)-f(x))\otimes(X-x)^{\otimes2})^{ijk}$. Applying
+  Lemma~\ref{lemma:product_rule}(ii), the first two derivatives of
+  this function evaluated at $x$ are equal to $0$. The third
+  derivative of this function (with respect to $x^\ell$, $x^m$, $x^n$)
+  is equal to $6 \Sym(F_{\ell}\otimes \J{m}\otimes \J{n})$ and the
+  fourth derivative is equal to
+  $12\Sym(F_{\ell m}\otimes \J{m}\otimes \J{n}\otimes \J{o})$.
+
+  Hence, applying Equation~\eqref{eq:rr_h} to $h$ shows that
+  \begin{align*}
+    &\esp{\Sym((f(X)-f(x))\otimes (X-x)^{\otimes2})}\\
+    &= \frac1{N^2}\Sym\p{\frac66F^i_{\ell}C^{\ell jk} + \frac{12}{24}
+      F^{i}_{\ell m}D^{\ell mjk}} + o(1/N^2). 
+  \end{align*}
+  
+  The second term of Equation~\eqref{eq:dotC_proof} can be treated by
+  applying Equation~\eqref{eq:rr_h} to $h(X)=q(X)(X^k-x^k)$, whose
+  first derivative evaluated at $x$ is $Q^{ij}$ and whose second
+  derivative is $2Q^{ij}_\ell\otimes \J{\ell}$ (see
+  Lemma~\ref{lemma:product_rule}(i)). This shows that
+  \begin{align*}
+    \esp{\Sym(q(X)\otimes (X-x)^{ijk})}
+    =\frac1N\Sym\p{Q^{ij}V^k + \frac22Q^{ij}_\ell W^{\ell k}}+o(\frac1N).% \\
+  \end{align*}
+  
+  Finally, the last term of Equation~\eqref{eq:dotC_proof} is equal to
+  $R/N^2+o(1/N^2)$.
+
+  This shows that Equation~\eqref{eq:dotC_proof} has only terms in
+  $O(1/N^2)$ plus term of order $o(1/N^2)$. By identifying the
+  $O(1/N^2)$-terms, we get
+  \begin{align*}
+    \dot{C}^{ijk}
+    &= 3\Sym(F^i_{\ell}C^{\ell jk})
+      +\frac32\Sym(F^{i}_{\ell m}D^{\ell mjk})
+      \\&\qquad+3\Sym(Q^{ij}V^k)
+      +3\Sym(Q^{ij}_\ell W^{\ell k})
+      +R^{ijk}
+  \end{align*}
+  
+  \textbf{4.} The derivative is similar for
+  $\esp{Y_t^{\otimes4}}$. Applying \eqref{eq:(X-x)k} shows that
+  \begin{align*}
+    &\dt \esp{(X-x)^{\otimes4}}\\
+    &=4\Sym(\esp{(f(X)-f(x))\otimes (X-x)^{\otimes 3}})
+      +\frac{6}N\esp{q(X)\otimes(X-x)^{\otimes2}}\\
+    &\qquad\frac{4}{N^2}\esp{r(X)\otimes(X-x)^{\otimes2}}
+      +\frac{1}{N^3}\esp{\sum_{\bl\in\calL}\beta_{\bl}(X)\bl^{\otimes4}}
+  \end{align*}
+  By \eqref{eq:rr_h} with the function
+  $h(x)=(f(X)-f(x))(X-x)^{\otimes 3}$ the first term is equal to
+  $4\Sym(F^i_mD^{mjk\ell})/N^2+o(1/N^2)$ (because the first three
+  derivatives of this function $h$ are equal to zero and the last one
+  has a factor $4\times3\times2=24$ by
+  Lemma~\ref{lemma:product_rule}(iii)).
+
+  For the second term, we can again use Equation~\eqref{eq:rr_h} with
+  $h(X)=q(X)(X-x)^2$ and Lemma~\ref{lemma:product_rule}(ii). The first
+  derivative of $h$ is zero and only the second term counts~:
+  \begin{align*}
+    \Sym(\esp{q(X)\otimes(X-x)^{\otimes2}}) = \frac2{2N}\Sym(Q\otimes
+    W) + o(1/N). 
+  \end{align*}
+  Finally, the one before last is of order $O(1/N^3)$ because of
+  \eqref{eq:rr_h} and the last term is of order $O(1/N^3)$.
+  
+  We therefore obtain :
+  \begin{align*}
+    \dot{D}^{ijk\ell}
+    &= 4\Sym(F^{i}_{m}D^{mjk\ell}) + 6\Sym(Q^{k\ell}W^{ij}).
+  \end{align*}
+
+In the above proof, we used the following lemma, whose proof is direct
+by using general Leibniz rule. 
+\begin{lemma}
+  \label{lemma:product_rule}
+  Let $g:\R\to\R$ be $k$-times differentiable. Then
+  \begin{itemize}
+  \item[(i)] $\frac{\partial^k(xg(x))}{(\partial x)^k}= x g^{(k)}(x) + k
+    g^{(k-1)}(x)$
+  \item[(ii)]
+    $\frac{\partial^k(x^2g(x))}{(\partial x)^k}= x^2 g^{(k)}(x) + 2kx
+    g^{(k-1)}(x)+k(k-1)g^{(k-2)}$
+  \item[(iii)]
+    $ \frac{\partial^k(x^3g(x))}{(\partial x)^k}= x^3 g^{(k)}(x) + 3k
+    x^2 g^{(k-1)}(x)+3k(k-1)xg^{(k-2)}$\\\phantom{+}\hspace{1.5cm}
+    $+k(k-1)(k-2)g^{(k-3)}$
+  \end{itemize}
+  
+\end{lemma}
+
+\subsubsection{Proof of Theorem~\ref{th:steady}}
+
+Most of the work needed to prove Theorem~\ref{th:steady} was already
+done in the proof of Theorem~\ref{th:transient}. Indeed, it should be
+clear the linear equations of Theorem~\ref{th:steady} correspond to
+the fixed point equation of the ODE of
+Theorem~\ref{th:transient}. Therefore, to prove
+Theorem~\ref{th:steady}, the only remaining steps are to prove that:
+\begin{enumerate}
+\item These fixed point equations have a unique solution.
+\item The system of ODEs of Theorem~\ref{th:transient} converges to
+  this solution.
+\item One can exchange the limits $\lim_{t\to\infty}$ and
+  $\lim_{N\to\infty}$.
+\end{enumerate}
+
+\textbf{Uniqueness} -- the uniqueness of the solution, for $V$ and $W$
+was already shown in \cite{gast2017refined}. For $D$, one can remark
+that its fixed point equation can be written as a matrix equation
+$M^{(4)}D=y$ where $y$ is a vectorized version of
+$-6 \Sym(Q\otimes W)$, and where the matrix $M^{(4)}$ is a
+$d^4\times d^4$ matrix that can be expressed as the Kronecker sum of
+four times the Jacobian of the drift evaluated at $\pi$:
+\begin{align}
+  M^{(4)}_{ijk\ell; abcd}&= F^i_a\delta_{jb}\delta_{kc}\delta_{\ell d} +
+                           \delta_{ia}F^j_b\delta_{kc}\delta_{\ell
+                           d}\nonumber\\ 
+                         &\qquad + \delta_{ia}\delta_{jb}F^k_c\delta_{\ell
+                           d} +
+                           \delta_{ia}\delta_{jb}\delta_{kc}F^\ell_d,
+                           \label{eq:M^4}
+\end{align}
+where $\delta_{ij}$ is the Kronecker symbol that equals $1$ if an only
+if $i=j$ and $0$ otherwise.  Note that in the above equation, the
+lines and columns of the matrix $M^{(4)}$ are indexed by the tuples
+$ijk\ell$ (for the lines) or $abcd$ (for the columns).
+
+By property the Kronecker sum, an eigenvalue of $M^{(4)}$ is the sum
+of four eigenvalues of the Jacobian matrix $(F^i_j)$. As the system is
+exponentially stable, all the eigenvalues of the Jacobian matrix have
+negative real part. Therefore all eigenvalues of the matrix $M^{(4)}$
+have negative real part and $M^{(4)}$ is invertible. This implies the
+existence and the uniqueness of the solution for $D$ of the fixed
+point equation.
+
+Once the $D$ is fixed, the equation for $C$ can be written is a
+similar way $M^{(3)}C=y$ where $M^{(3)}$ is the Kronecker sum of three
+times the Jacobian of the drift. A similar reasoning as the one for
+$D$ shows that $C$ is uniquely defined. This can be propagated to $B$
+and then $A$.
+
+\textbf{Convergence to the fixed point}.  The time-varying constant
+$D(t)$ satisfies a time-inhomogeneous linear differential equation
+$\dot{D} = M^{(4)}(t)D + y(t)$, where $M^{(4)}(t)$ is the Kronecker
+sum of four times the Jacobian of the drift evaluated in $x(t)$ and
+$y(t)$ (defined as in Equation~\eqref{eq:M^4}). As $x(t)$ converges to
+an exponentially stable attractor $\pi$, all eigenvalues of the
+Jacobian of the drift $f$ evaluated in $\pi$ have negative real
+part. This implies that there exists a time after which all
+eigenvalues of the Jacobian of $f$ have negative real part in which
+case all eigenvalues of the matrix $M^{(4)}(t)$ have negative real
+part. This implies that the ODE for $D(t)$ is exponentially stable and
+that therefore $D(t)$ converges to the unique fixed point of this
+system. The same reasoning applies for $C$, $B$ and $A$.
+
+\textbf{Exchange of the limits}. The above steps guarantee that the
+terms $V(t)$ and $A(t)$ of the development in $1/N$ and $1/N^2$
+converge as $N$ goes to infinity. Informally, this shows that
+\begin{align}
+  \lim_{t\to\infty}\esp{X^N(t)}-\pi
+  &=\lim_{t\to\infty}\esp{X^N(t)-x(t)} \nonumber\\%  
+  &= \lim_{t\to\infty} \frac1NV(t) + \frac1{N^2} A(t) + o(1/N^2)\nonumber\\
+  &=  \frac1NV + \frac1{N^2} A + \lim_{t\to\infty}o(1/N^2)\label{eq:proof_VA}. 
+\end{align}
+In order to conclude the proof, we need to show that it is possible to
+exchange the limits, which is to show that the term
+$\lim_{t\to\infty}o(1/N^2)$ is indeed a $o(1/N^2)$ term.
+
+To see that, we use Stein's method and the ideas developed in
+\cite{ying2016rate,gast2017expected} to show that, in steady-state, 
+\begin{align*}
+  \esp{h(\XN)} - h(\pi) = \esp{ \DeltaN \int_0^\infty
+  h(\Phi_s(\XN(s)))-h(\pi)ds},
+\end{align*}
+where $\DeltaN$ is the operator defined in
+Equation~\eqref{eq:deltaN}. Note that this equation is a consequence
+of Equation~(10) of \cite{gast2017expected} and is the analog of
+Equation~\eqref{eq:deltaN_transient} as $t$ goes to infinity.
+
+Concerning the exchangeability of the limits, for space constraints,
+we only sketch the main remaining ideas of the proofs.
+The first step is to show that the hidden constant of the $o(1/N^2)$
+of Theorem~\ref{th:transient} depends on the modulus of continuity of
+the function $G^{(t)}(x)=\int_0^t h(\Phi_s(x))-h(\pi)ds$. This comes
+from Equation~\eqref{eq:deltaN_development}.  The second idea is that
+the function $G(x)=\int_0^\infty h(\Phi_s(x))-h(\pi)ds$ is four times
+differentiable and that the derivatives $G^{(t)}$ converge uniformly
+to the derivatives of $G$ as $t$ goes to infinity. This comes from
+perturbation theory~: by \cite[Lemma~C.1]{eldering2013normally}, if
+the flow $\Phi$ has an exponentially stable attractor and is four
+times differentiable, then the first four derivatives of $\Phi_s(x)$
+converge exponentially fast to $0$. The same argument is used in the
+proof of Lemma~3.5 of \cite{gast2017refined}. These two arguments show
+that the modulus of continuity of the derivatives of $G^{(t)}$ are
+uniformly bounded in time and that therefore the convergence is
+uniform in time. 
+ 
+
+
+\section{Example 1: Malware propagation}
+\label{sec:SIS}
+
+In this section we illustrate the above results with a simplified variant of the malware
+propagation model of~\cite{benaim2008class,khouzani2012maximum}. It can be viewed as an 
+instance of a basic infection model in epidemiology (e.g.,~\cite{murray:i}). We choose this
+model because of its simplicity: since it is a one-dimensional model,
+the constants of the $1/N$ and the $1/N^2$ approximation can be
+computed in closed form and the stationary distribution can be
+evaluated numerically easily with high precision (it is a birth-death
+process). This allows us to assess the accuracy of
+the various approximations with high precision.
+
+\subsection{Model}
+
+We consider a model of malware propagation in a system composed of $N$
+agents. Each agent is either infected by the malware or
+not. Let $X$ be the fraction of infected agents.  We consider that
+each non-infected agent becomes infected at rate $1+X$ (the rate
+$1$ corresponds to infection by an external source while the rate $X$
+corresponds an infection by a peer). An infected agent recovers at
+rate $1$ due to some patching mechanism. This translates into the
+following transitions for $X$:
+\begin{align*}
+  X \mapsto X+\frac1N & \text{ at rate $N(1-X)(1+X)$}\\
+  X \mapsto X-\frac1N & \text{ at rate $NX$}
+\end{align*}
+
+\subsection{Mean Field Approximations and Expansions}
+
+To apply Theorem~\ref{th:transient} and \ref{th:steady}, let us first
+compute the drift of the system, its derivative, the matrix $Q$
+and its derivative, and the tensor $R$. As the system is
+uni-dimensional, all tensors are in fact scalars. The drift is
+$f(x)=1-x^2-x=r(x)$ and the function $q(x)=1-x^2+x$. The ODE of the
+mean field approximation $\dot{x}=f(x)$ is a Bernoulli type equation,
+hence, the mean field approximation has the closed-form solution
+\begin{align}
+  \label{eq:solution_SIS}
+  x(t)=-\frac12+\frac{\sqrt{5}}{2}\p{\frac2{1-\alpha e^{-\sqrt{5}t}}-1},
+\end{align}
+where $\alpha=(4x(0)+1-\sqrt{5})/(4x(0)+1+\sqrt{5})$ and $x(0)$ is the initial condition.
+
+As there is a close form solution for the mean field approximation, it
+might be doable to obtain a close form expression for the constants
+$V(t)$, $W(t)$,\dots{} but the expressions of such constant seem
+highly complex. Hence, in our illustrations, we use our tool
+\cite{rmfTool2018} to compute numerically these constants. 
+
+
+The fixed point analysis is simpler.  From
+Equation~\eqref{eq:solution_SIS}, it is clear that the ODE
+$\dot{x}=f(x)$ has a unique attractor $\pi=(\sqrt{5}-1)/2$ that is
+exponentially stable. Moreover, the derivatives of the drift (evaluated
+at $\pi$) are $f'(\pi)=-\sqrt{5}$, $f''(\pi)=2$,
+$f^{(3)}(\pi)=f^{(4)}(\pi)=0$. Finally, the function $q$ evaluated at
+$\pi$ is $q(\pi)=\sqrt{5}-1$ and its derivatives are
+$q'(\pi)=2-\sqrt{5}$, $q''(\pi)=-2$. Last, we have that $r(\pi)=0$.
+
+After some algebra, it can be shown that the constants $V$ and $A$
+that solve the fixed point equation of Theorem~\ref{th:steady} are
+\begin{align*}
+  V &= \frac{\sqrt{5}-1}{10}& \text{ and }
+  & &A = \frac{\sqrt{5}-3}{50}. 
+\end{align*}
+Plugging the above quantity into Theorem~\ref{th:steady} shows that,
+in steady-state and as $N$ goes to infinity, one has :
+\begin{align*}
+  \esp{X} = \frac{\sqrt{5}-1}{2} \p{1-\frac{1}{5N}} +
+  \frac{\sqrt{5}-3}{50N^2} + o\p{\frac1{N^2}}.
+\end{align*}
+
+\subsection{Numerical Comparison}
+
+In this section, we propose a numerical comparison of the exact
+values, the mean field approximation and the two expansions (up to
+order $1/N$ and $1/N^2$).
+
+\subsubsection{Transient regime}
+
+\begin{figure}[t]
+  \centering
+  \begin{tabular}{@{}cc@{}}
+    \includegraphics[width=.48\linewidth]{1D_modelN5}
+    &\includegraphics[width=.48\linewidth]{1D_modelN10}
+    \\
+    $N=5$&$N=10$
+  \end{tabular}
+  
+  \caption{Malware model, transient regime: comparison of the mean
+    field approximation, the $1/N$ and $1/N^2$ expansions and the
+    exact value.}
+  \label{fig:SIS-transient1}
+\end{figure}
+
+To perform a numerical comparison of the various approximations with
+the exact values, we implemented two numerical procedures. For the
+mean field approximation and the expansions, we implemented a
+numerical integration of the system of ODEs of
+Theorem~\ref{th:transient}.  For the exact values, we used the fact
+that for a given size $N$, the stochastic model is a continuous time
+Markov chain with $N+1$ states ($\{0,1/N,2/N\dots,1\}$). We again used
+a numerical integrator to integrate the Kolmogorov equations for this
+case.
+
+The results are reported in Figure~\ref{fig:SIS-transient1} in which
+we compare the three approximations (mean field and the two
+expansions) with the exact values, for $N=5$ and $N=10$. At the
+beginning, we start in a system where $X(0)=0.6$ (\emph{i.e.} $3N/5$
+of the $N$ agents are infected). We observe that the expansions
+provide a much better characterization of the transient regime that
+the classical mean field approximation. Note that for $N=5$, the gain
+when going from the $1/N$ to the $1/N^2$ is small. For $N=10$, the
+gain is almost invisible. 
+
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{SIS_constantA}
+  \caption{Malware model, transient regime : we compare the error of
+    the expansion of order $1/N$ with the constant $A(t)$ of
+    Theorem~\ref{th:transient}. }
+  \label{fig:SIS-transient2}
+\end{figure}
+To observe more precisely what is the gain brought by the $1/N^2$
+approximation, we plot in Figure~\ref{fig:SIS-transient2} the
+$1/N^2$-constant $A(t)$ and compare it with the error of the
+$1/N$-expansion rescaled by $N^2$: $N^2(\esp{X(t)}-x(t)-V(t)/N)$, for
+various values of $N\in\{5,10,20,30\}$. As shown by
+Theorem~\ref{th:transient}, the rescaled error of the $1/N$-expansion
+converges to $A(t)$ as $N$ goes to infinity. This figures also shows
+that $A(t)$ is of order $10^{-2}$. This explains why the gain in
+accuracy brought by the $1/N^2$-term is small: the error of the
+$1/N$-approximation is only around $0.01/N^2$.
+
+
+
+
+\begin{table}[t]
+  \centering
+  \begin{tabular}{|c|c|c|c|c|c|}
+    \hline
+    $N$ & $\esp{X}$ &\multicolumn{2}{c|}{$1/N$-expansion}
+    &\multicolumn{2}{c|}{$1/N^2$-expansion}\\
+        & & &Error & &Error\\\hline
+    1 & 0.5000000 & 0.4944272 & 5.6e-03 & 0.4791486 & 2.1e-02\\
+    5 & 0.5929041 & 0.5933126 & -4.1e-04 & 0.5927015 & 2.0e-04\\
+    10 & 0.6055449 & 0.6056733 & -1.3e-04 & 0.6055205 & 2.4e-05\\
+    20 & 0.6118184 & 0.6118536 & -3.5e-05 & 0.6118155 & 3.0e-06\\
+    30 & 0.6138977 & 0.6139138 & -1.6e-05 & 0.6138968 & 8.7e-07\\
+    50 & 0.6155559 & 0.6155619 & -5.9e-06 & 0.6155557 & 1.9e-07\\
+    $\infty$&0.6180340&0.6180340&0&0.6180340 & 0\\
+    \hline
+  \end{tabular}
+  \caption{Malware propagation model: comparison of the "true"
+    expectation of $X$ and the $1/N$ and $1/N^2$ expansions. The
+    ``error'' column is the difference between $\esp{X}$ and the
+    expansion.  
+      Note that the classical mean field approximation is
+    the value for $N=\infty$, which is $\pi\approx0.6180340$. 
+  }
+  \label{tab:SIS}
+\end{table}
+
+\subsubsection{Steady-state}
+\label{sec:SIS_steady}
+
+We now verify the accuracy in steady-state.  In Table~\ref{tab:SIS},
+we verify the accuracy of the approximation for various values of
+$N\in\{1,5,10,20,30,50\}$. We compare three values~:
+\begin{itemize}
+\item $\esp{X}$ that we computed by using the fact that this  model
+  is a birth-death process whose stationary measure can therefore be
+  easily computed numerically. 
+\item $\pi+V/N$, which is the refined approximation of
+  \cite{gast2017expected} and that we call the $1/N$-expansion.
+\item $\pi+V/N+A/N^2$ that we call the $1/N^2$-expansion.
+\end{itemize}
+We observe that for this model, the $1/N$ and $1/N^2$ expansions are
+already very accurate for $N=1$ and they soon provide more than $4$
+digits of precision for $N\ge10$. For $N\ge10$, the error made by the
+$1/N^2$-expansion is an order of magnitude smaller than the error made
+by the $1/N$-expansion (the ratio between the two errors is
+approximately $0.6N$). The high accuracy of the  $1/N$-expansion can be
+by the fact that the two constants are
+$V\approx0.12$ and $A\approx-0.015$, hence, as for the transient
+regime, the difference between the two expansions is only $0.015/N^2$.
+
+
+
+
+
+
+\section{The supermarket model}
+\label{sec:supermarket}
+
+We now focus on the classical supermarket model of
+\cite{mitzenmacher1996power,vvedenskaya1996queueing}. We study the
+gain of the $1/N$ and $1/N^2$ expansions for the transient and the 
+steady-state regimes. As for the previous examples, the gain in
+accuracy of the $1/N$-expansion over the mean field approximation is
+large but the gain of the $1/N^2$-expansion over the $1/N$-expansion
+is smaller.  Also, this model illustrates that it is possible to
+compute the $1/N$ and $1/N^2$ terms for a realistic model.
+
+\subsection{The Model}
+
+We consider a queuing system composed of $N$ identical servers. Jobs
+arrive at a central broker according to a Poisson process of rate
+$\rho N$ and are dispatched towards the servers by using the JSQ($k$)
+policy: for each incoming job, the broker samples $k$ servers at
+random and sends the jobs to the server that has the smallest number
+of jobs in its queue (ties are broken at random). The time to process
+a job is exponentially distributed with mean $1$.
+
+This system can be modeled as a density dependent population process
+defined in Section~\ref{sec:model}. To see that, we assume that the
+queue size is bounded by $d$ and we denote by $X_i(t)$ the fraction of
+servers with queue size $i$ or more at time $t$.  $X(t)$ is a Markov
+chain whose transitions are~:
+\begin{align}
+  \label{eq:two-choice-with}
+  \begin{array}{rcl}
+    X \to X - \frac1N\mathbf{e}_i& \text{at rate} & N(X_i-X_{i+1})\\
+    X \to X + \frac1N\mathbf{e}_i& \text{at rate} & N\rho(X^k_{i-1}-X^k_{i}),
+  \end{array}
+\end{align}
+where $\mathbf{e}_i$ is a vector whose $i$th component is $1$ the
+other ones being $0$. Also, note that we use the classical notation
+for indices : $X_i$ denotes the $i$th component of $X$ and $X_i^k$
+denotes the $k$th power of $X_i$.
+
+The explanation is as follows: A departure from a server with $i\ge1$
+jobs modifies $X$ into $X-N^{-1}\mathbf{e}_i$ and occurs at rate
+$N(X_i-X_{i+1})$.  An arrival at a server with $i$ jobs modifies $X$
+into $X+N^{-1}\mathbf{e}_i$.  Assuming that the $k$ servers are picked
+with replacement, the least loaded among $k$ servers has $i-1$ jobs
+with probability $X_{i-1}^k-X_i^k$.
+
+\subsection{Mean Field Approximation and Expansions}
+
+
+To apply Theorems~\ref{th:transient} and~\ref{th:steady}, we
+first compute the drift, the constants $Q$, $R$ and the needed
+derivatives. 
+
+The $i$th component of the drift of this model evaluated at $x$ is
+$F^i$:
+\begin{align}
+  F^i = \rho(x_{i-1}^k-x_i^k) + (x_{i+1}-x_{i}). 
+  \label{eq:two-choice-drift}
+\end{align}
+
+The first derivative of the drift evaluated at a point $x$ satisfies
+\begin{align*}
+  F^i_{i-1} &= k\rho x_{i-1}^{k-1};&
+  F^i_i &= -k\rho x_{i}^{k-1}-1;&  F^i_{i+1} &= 1,
+\end{align*}
+all other terms being equal to $0$.
+
+Similarly, the second derivative satisfies
+\begin{align*}
+  F^i_{i-1,i-1} &= k(k-1)\rho x_{i-1}^{k-2}
+  &F^i_{ii} &= -k(k-1)\rho x_{i}^{k-2},
+\end{align*}
+all other terms being equal to $0$. The expression is similar for the
+third and fourth derivatives.
+
+The tensors $Q$ and $R$ of Equation~\eqref{eq:Q} and \eqref{eq:R}
+satisfy:
+\begin{align*}
+  Q^{ii} &= (\beta_{e_i}(x)+\beta_{-e_i}(x)) = 
+           \rho(x_{i-1}^k - x_i^k)+(x_i-x_{i+1})\\
+  R^{iii} &= F^i = \rho(x_{i-1}^k-x_i^k) + (x_{i+1}-x_{i}).
+\end{align*}
+Finally, the first and second derivatives of $q$ evaluated in $x$
+satisfy
+\begin{align*}
+  Q^{ii}_{i-1} &= k\rho x_{i-1}^{k-1}&
+  Q^{ii}_{i} &= 1-k\rho x_{i}^{k-1} &
+  Q^{ii}_{i+1} &= -1\\
+  Q^{ii}_{i-1,i-1} &= k(k-1)\rho x_{i-1}^{k-2}&
+  Q^{ii}_{ii} &= -k(k-1)\rho x_i^{k-2}
+\end{align*}
+
+
+To apply Theorem~\ref{th:steady}, the only technical condition to
+verify is that the fixed point is exponentially stable. This is done
+for example in \cite{ying2016rate,ying2016twochoice}. The constants
+for the steady-state approximation can be computed by evaluating the
+above equation in $\pi$.
+
+\subsection{Algorithmic Considerations}
+\label{sec:supermarket_algo}
+
+In order to perform numerical comparison of the refined approximations
+and an estimation of the true values, we implemented various numerical
+algorithms. For the expected values, we implemented a C++ simulator of
+the supermarket model that simulates a density-dependent population
+process whose transitions are exactly the ones of
+Equation~\eqref{eq:two-choice-with}. For the transient analysis, to
+estimate the evolution of the expected queue length as a function of
+time, we performed an average of $10^5$ (for $N=10$) or $20000$ (for
+$N=20$) independent runs of simulations. This number of simulations is
+chosen as a compromise between computation time and accuracy. As we
+will observe in Figure~\ref{fig:supermarket-transient}, more
+simulations would give more accurate results but we choose to limit
+the computation time to $1h$ per panel. For the steady-state values,
+we compute the average of $1000$ independent time-average of
+simulations after a warp-up period of $10000N$ events for each.
+
+For the numerical analysis, we implemented a code to compute the
+parameters of the supermarket model and then use our tool
+\cite{rmfTool2018} to solve numerically the ODEs of
+Theorem~\ref{th:transient} or the fixed point equations of
+Theorem~\ref{th:steady}. As the size of the ODE for the
+$1/N^2$-approximation grows like $d^4$, we choose to bound the queue
+length to $d=10$ for the $1/N^2$-expansions. In practice, using a
+larger maximal queue length brings to the same numerical value.  For
+the transient regime, the computation time of the $1/N^2$-term is
+around $10$sec and the one of the $1/N$-term less than one second.
+The computation of the fixed point is much faster than the one of the
+transient regime: it takes around $300$ms for $d=20$ and around $15$s
+for $d=50$ (on a 2013-laptop).
+
+
+\subsection{Numerical Comparisons}
+
+It is shown in \cite{gast2017refined} that the $1/N$-expansion
+provides estimates of the steady-state average queue length that are
+much more accurate than the classical mean field approximation. In
+this section we show that the $1/N$-expansion can also be used to
+improve the accuracy in the transient-regime and that the
+$1/N^2$-expansion improves on the $1/N$-expansion (both for transient
+and steady-state analysis).
+
+
+\begin{figure}[t]
+  \centering
+  \begin{tabular}{c}
+    \includegraphics[width=\linewidth]{twoChoice_refRefTransient_N10_rho90}\\
+    $N=10$, $\rho=0.9$, $k=2$. \\
+    \includegraphics[width=\linewidth]{twoChoice_refRefTransient_N20_rho90}\\
+    $N=20$, $\rho=0.9$, $k=2$.
+  \end{tabular}
+  \caption{Supermarket model and transient regime: Comparison of the
+    classical mean field approximation and the two expansions with
+    data from simulations. }
+  \label{fig:supermarket-transient}
+\end{figure}
+
+
+\subsubsection{Transient regime}
+
+We first consider how the expected queue length evolves with time.
+We consider the supermarket model with $k=2$ choices and
+$\rho=0.9$. We start in a system where the expected queue length is
+$2.8$ : out of the $N$ queues, $0.2N$ queues start with $2$ jobs and
+$0.8N$ queues start with $3$ jobs. We choose this value as it is close
+to $2.75$, the steady-state average queue length predicted by the
+$1/N$-expansion for $N=10$.
+
+In Figure~\ref{fig:supermarket-transient}, we report how the expected
+queue length evolve with time compared to the three approximation
+(mean field, $1/N$-approximation and $1/N^2$-approximation).  We
+observe in this figure that both for $N=10$ and $N=20$, the expansions
+provide an estimation of the evolution of the expected queue length
+that is much more accurate than the one provided by the classical mean
+field approximation. Moreover, for $N=10$, the $1/N^2$-expansion
+provides a better approximation than the $1/N$-expansion. For $N=20$,
+the two curves are almost indistinguishable.
+
+For the simulation of the transient regime, the running time of
+simulation is approximately $0.1$sec per run of our C++ simulator for
+$N=20$ and $0.05$sec for $N=10$. This represents roughly $1$h of
+computation for each of the two panels. As a comparison, the total
+time to compute the expansion of order $1/N^2$ is about $10$ seconds
+(and does not depend on $N$), and the time to compute the expansion of
+order $1/N$ is around $1$ second (using our python's implementation). 
+
+
+
+Note that we only present the results for $k=2$ and
+$\rho=0.9$. Similar results can be observed for other values of $k$
+and $\rho$ with one difference: the smaller is $\rho$, the smaller is
+the difference between the approximations and the simulation (the
+difference between the $1/N$-expansion and the $1/N^2$-expansion can
+almost not be distinguished for $\rho<0.7$). This is more visible in
+Table~\ref{tab:supermarket}.
+
+
+
+
+
+\begin{table}[t]
+  \centering
+  \small 
+  \begin{tabular}{@{}|@{ }ccc@{ }|@{}c@{}|@{}c@{}|@{}c@{}|@{}c@{}|@{}}
+    \hline
+    $N$&$k$&$\rho$&Mean field&$1/N$-expansion&$1/N^2$-expansion&Simulation\\
+    \hline 
+    10 & 2 & 0.7 	 &1.1301 &	1.2150 &	1.2191 &	1.2193 \\
+    20 & 2 & 0.7 	 &1.1301 &	1.1726 &	1.1736 &	1.1737 \\
+    \hline
+    10 & 2 & 0.9 	 &2.3527 &	2.7513 &	2.8045 &	2.8002 \\
+    20 & 2 & 0.9 	 &2.3527 &	2.5520 &	2.5653 &	2.5662 \\
+    \hline
+    10 & 2 & 0.95 	 &3.2139 &	4.1017 &	4.3265 &	4.2993 \\
+    20 & 2 & 0.95 	 &3.2139 &	3.6578 &	3.7140 &	3.7124 \\
+    \hline
+    10 & 3 & 0.9 	 &1.8251 &	2.2364 &	2.3322 &	2.3143 \\
+    20 & 3 & 0.9 	 &1.8251 &	2.0307 &	2.0547 &	2.0517 \\
+    50 & 3 & 0.9 	 &1.8251 &	1.9073 &	1.9112 &	1.9106 \\
+    100 & 3 & 0.9 	 &1.8251 &	1.8662 &	1.8672 &	1.8672 \\
+    \hline
+    10 & 4 & 0.95 	 &2.0771 &	2.9834 &	3.8704 &	3.3268 \\
+    20 & 4 & 0.95 	 &2.0771 &	2.5303 &	2.7520 &	2.6376 \\
+    50 & 4 & 0.95 	 &2.0771 &	2.2584 &	2.2939 &	2.2787 \\
+    100 & 4 & 0.95 	 &2.0771 &	2.1678 &	2.1766 &	2.1732 \\
+    \hline  \end{tabular}
+  \caption{Supermarket model, steady-state average queue length :
+    comparison of the value computed by simulation with the three
+    approximations. }
+  \label{tab:supermarket}
+\end{table}
+
+\subsubsection{Steady-state}
+
+In Table~\ref{tab:supermarket}, we present results that illustrate the
+accuracy of the expansions compared to the one of the classical mean
+field approximation. We choose a few values of $k$ and $\rho$. More
+complete results can be found in the git repository of the paper
+\cite{githubPaper2018}.
+
+We observe that in all tested cases, the $1/N$-expansion provides an
+estimation of the average queue length that is much more accurate than the one
+provided by the classical mean field approximation. The estimation
+provided by the $1/N^2$-expansion is generally more accurate but the
+gain brought by the $1/N^2$-term varies across the different
+parameters. The gain is the most visible for $k=2$, in which case the
+$1/N^2$-expansion provides very accurate estimates, even for
+$N=10$. This is less pronounced for $k=3$ and $k=4$, where the
+gain is more visible for higher values of $N$. Recall that in all
+cases, the mean field approximation provides estimates that do not
+depend on the system size $N$. They are systematically less accurate
+than the two expansions.
+
+
+
+\begin{table}[t]
+  \centering
+  \begin{tabular}{@{}|@{}c@{}|c|c|c|c|c|c|}
+    \hline
+    & $X_2$ &$X_3$ &  $X_4$ &  $X_5$&   $X_6$ &  $X_7$  \\\hline
+    $\rho{=}0.9$, $k{=}2$, $N{=}10$ &&&&&&\\
+    Mean field		& 0.729 & 0.478 & 0.206 & 0.038 & 0.001 & 0.000 \\
+    $1/N$-expansion	& 0.742 & 0.544 & 0.361 & 0.179 & 0.025 & 0.000 \\
+    $1/N^2$-expansion	& 0.741 & 0.533 & 0.316 & 0.194 & 0.116 & 0.005 \\
+    Simulation		& 0.741 & 0.534 & 0.327 & 0.170 & 0.077 & 0.032 \\
+    \hline
+    
+    $\rho{=}0.95$, $k{=}2$, $N{=}20$ &&&&&&\\
+    Mean field		& 0.857 & 0.698 & 0.463 & 0.204 & 0.039 & 0.001 \\
+    $1/N$-expansion	& 0.861 & 0.721 & 0.544 & 0.371 & 0.184 & 0.026 \\
+    $1/N^2$-expansion	& 0.861 & 0.719 & 0.527 & 0.321 & 0.210 & 0.122 \\
+    Simulation		& 0.861 & 0.719 & 0.530 & 0.334 & 0.178 & 0.083 \\
+    \hline
+    
+    $\rho{=}0.9$, $k{=}4$, $N{=}10$ &&&&&&\\
+    Mean field		& 0.590 & 0.109 & 0.000 & 0.000 & 0.000 & 0.000 \\
+    $1/N$-expansion	& 0.679 & 0.450 & 0.007 & 0.000 & 0.000 & 0.000 \\
+    $1/N^2$-expansion	& 0.652 & 0.341 & 0.131 & 0.000 & 0.000 & 0.000 \\
+    Simulation		& 0.657 & 0.344 & 0.140 & 0.051 & 0.018 & 0.006 \\
+    \hline
+    
+    $\rho{=}0.95$, $k{=}4$, $N{=}20$ &&&&&&\\
+    Mean field		& 0.774 & 0.341 & 0.013 & 0.000 & 0.000 & 0.000 \\
+    $1/N$-expansion	& 0.802 & 0.600 & 0.178 & 0.000 & 0.000 & 0.000 \\
+    $1/N^2$-expansion	& 0.795 & 0.429 & 0.578 & 0.001 & 0.000 & 0.000 \\
+    Simulation		& 0.798 & 0.509 & 0.236 & 0.092 & 0.034 & 0.012 \\
+    \hline
+  \end{tabular}
+  \caption{Supermarket : steady-state distribution. }
+  \label{tab:supermarket_distribution}
+\end{table}
+
+
+Theorem~\ref{th:steady} can also be used to compute estimations of the
+queue length distribution. Indeed, for the supermarket model,
+$\esp{X_i}$ is the probability that a given server has $i$ jobs or
+more. In Table~\ref{tab:supermarket_distribution}, we report the value
+of $\esp{X_i}$ for various values of the parameters and
+$i\in\{2\dots7\}$. Note that we do not report the value $\esp{X_1}$,
+which is the probability that a server is busy and is equal to
+$\rho$. We make two observations. First, for moderate values of $\rho$
+and $k$, the $1/N^2$-expansion provides a very accurate estimation of
+the ``true'' distribution that we estimate by using simulation. This
+is less clear for higher values such as $k=4$ and $\rho=0.95$ for
+which the $1/N^2$ terms has a tendency to over-correct for small
+values of $N$.  Also, in all tested cases, the values for moderate
+values of $i$ are well approximated, but the tail of the distribution
+is less well approximated.  Note that for a fixed set of parameters
+$(\rho,d)$, the two expansions become more accurate as $N$ grows. This
+is illustrated in the git repository of the paper
+\cite{githubPaper2018}.
+
+
+
+
+
+\section{Limitations of the approach}
+\label{sec:limits}
+
+In the previous examples, we concentrated on cases where the mean field
+approximation has a unique attractor, which implies that the mean field
+approximation and its expansions converge to the exact value of
+$\esp{h(X)}$ uniformly in time (Theorem~\ref{th:steady}). In this
+section, we show that when the mean field approximation has a fixed
+point that is not an global attractor, this does not hold
+anymore. Moreover, in this setting, the two expansions do not work
+when $t$ is too large compared to $N$.
+
+\subsection{An ``Unstable'' Malware Propagation Model}
+\label{ssec:unstableSIR} 
+We consider a variation of the malware propagation example presented
+in Section~\ref{sec:SIS} that is inspired by the model of
+\cite{benaim2008class}. The system is composed of $N$ nodes. Each node
+can be dormant ($D$), active ($A$) or susceptible ($S$). Let
+$X_D,X_A,X_S$ denote the proportion of dormant, active and susceptible
+nodes. A node that is dormant becomes active at rate $0.1+10 X_A$. An
+active node becomes susceptible at rate $5$ and a susceptible node
+becomes dormant at rate $1+\frac{10X_A}{X_D+\delta}$, where $\delta$
+is a parameter of the model. This translates into the following
+transitions: 
+\begin{align*}
+  (X_D,X_A,X_S) \mapsto (X_D-\frac1N,X_A+\frac1N,X_S) &&& \text{ at rate $N(0.1+10X_A)X_D$}\\
+  (X_D,X_A,X_S) \mapsto (X_D,X_A-\frac1N,X_S+\frac1N) &&& \text{ at rate $N5X_A$}\\
+  (X_D,X_A,X_S) \mapsto (X_D+\frac1N,X_A,X_S-\frac1N) &&& \text{ at
+                                                          rate
+                                                          $N(1+\frac{10X_A}{X_D+\delta})X_S$}
+\end{align*}
+
+
+\begin{figure}[t]
+  \centering
+  \begin{tabular}{@{}cc@{}}
+    \includegraphics[width=.48\linewidth]{SIR_2D_a01}
+    &\includegraphics[width=.48\linewidth]{SIR_2D_a05}\\
+    Fixed point $\ne$ attractor ($\delta=0.1$)
+    & Fixed point $=$ attractor ($\delta=0.5$)
+  \end{tabular}
+  \caption{The unstable malware model : illustration of the two
+    possible regimes of the mean field approximation.}
+  \label{fig:unstableSIR_limit}
+\end{figure}
+
+This model satisfies all the assumptions (A1-A2) needed to apply
+Theorem~\ref{th:transient} that characterize the transient regime. It
+also satisfies (A3): There exists a unique stationary distribution
+because for each system size $N$, the stochastic model is a finite
+state irreducible Markov chain. This model, however, does not satisfy
+assumption (A4) for all possible values of the parameter $\delta$.
+Indeed, there exists a parameter value $\delta^*\approx0.18$ such that
+the mean field limit has a unique attractor if and only if
+$\delta>\delta^*$. For $\delta<\delta^*$, the mean field approximation
+has a unique fixed point but unless the initial state is this fixed
+point, the limiting behavior of the solution of the ODE is an
+orbit. This is illustrated in Figure~\ref{fig:unstableSIR_limit} where
+the two possible regimes are shown: for $\delta=0.1$ the system has a
+stable orbit and an unstable fixed point. For $\delta=0.5$ the system
+has a globally stable attractor.
+
+
+
+It is known that when the mean field approximation has a globally
+stable attractor, then the sequence of stationary measures of the
+stochastic processes concentrates on this attractor as the system size
+$N$ goes to infinity. On the other hand, when the mean field
+approximation has a (even unique) fixed point that is not an attractor
+(for example because there exist stable orbits), the sequence of
+stationary measures does not necessarily concentrate on this fixed
+point~\cite{benaim2008class,cho2012asymptotic}.
+
+When the stochastic model of size $N$ is a finite-state irreducible
+continuous time Markov chain, it has a unique stationary distribution
+and $\XN(t)$ converges in distribution to a variable $\XN$ distributed
+according to this distribution. This shows that for any function $h$
+$\lim_{t\to\infty}\esp{h(\XN(t))} =
+\esp{h(\XN)}$. Theorem~\ref{th:transient} also shows that for any
+fixed time step $t$, $\lim_{N\to\infty}\esp{h(X(t))}=h(x(t))$ where
+$x(t)$ is the mean field approximation. These reasons explain why one
+cannot exchange the limits $t\to\infty$ and $N\to\infty$ :
+\begin{align*}
+  \lim_{N\to\infty}\lim_{t\to\infty}\esp{h(\XN(t))} \ne
+  \lim_{t\to\infty}\lim_{N\to\infty}\esp{h(\XN(t))} =
+  \lim_{t\to\infty}h(x(t)),
+\end{align*}
+because the limit on left hand side is independent of the initial
+condition of the Markov chain while the limit on the right-hand-side
+is not necessarily well defined if $x(t)$ does not converge to a
+unique fixed point regardless of the initial condition.
+
+\begin{figure*}[ht]
+  \centering
+  \begin{tabular}{c}
+    \begin{tabular}{@{}c@{}c@{}c@{}}
+      \includegraphics[width=.32\linewidth]{SIR_a01_N50}
+      &\includegraphics[width=.32\linewidth]{SIR_a01_N200}
+      &\includegraphics[width=.32\linewidth]{SIR_a01_N1000}\\
+      (a) $N=50$&(b) $N=200$&(c) $N=1000$
+    \end{tabular}
+  \end{tabular}
+  \caption{``Unstable'' malware model : when the fixed point is not an
+    attractor ($\delta=0.1$), the accuracy of the approximations is
+    not uniform in time for a fixed system size $N$. }
+  \label{fig:unstableSIR}
+\end{figure*}
+
+\subsection{Instability of the the Expansions}
+
+One may hope that the expansions could be able to correct the
+non-exchangeability of the limits or at least would be able to
+compensate for some of the deviation.  We show in fact in
+Figure~\ref{fig:unstableSIR} that not only the expansions do not
+correct the error of the mean field approximation but they can even
+make it worse when the mean field approximation has a limiting cycle
+(case $\delta=0.1$). 
+
+To see that, we compare in Figure~\ref{fig:unstableSIR} the mean field
+approximation, the two expansions and an estimation of $\esp{X(t)}$
+obtained by simulation for the example described in
+Section~\ref{ssec:unstableSIR} in the case where the fixed point is
+not an attractor ($\delta=0.1$). We observe that for $N=50$, the mean
+field approximation provides an accurate approximation of $\esp{X(t)}$
+for $t\le1$ and then starts oscillating for larger values of $t$
+whereas $\esp{X(t)}$ stabilizes. The two expansions are slightly more
+accurate than the mean field approximation until $t\approx1.2$. After
+this time, they diverge quickly and are much less accurate than the
+mean field approximation. The main explanation for this fact is that
+when the mean field approximation does not have an attractor, the ODE
+of Theorem~\ref{th:transient} are unstable and the oscillations of the
+constants $V(t)$ and $A(t)$ grow with time. Note that the larger is
+$N$, the later the mean field approximation and its expansions start
+diverging from the expectation estimated by simulation.
+
+
+
+
+When $\delta=0.5$, the fixed point is an exponentially stable
+attractor. In this case, the error made by the mean field
+approximation (or by any of the two expansions) remains bounded with
+time, see Figure~\ref{fig:unstableSIR_delta05}. Moreover in this case
+the expansions provide a more accurate estimate of the true value of
+$\esp{X_A(t)}$.  The behavior in this case is similar to the one
+observed for the two examples presented in the previous sections.
+Note that this examples is quite special in the sense that most of the
+mean field models studied in the queuing theory literature have a
+unique fixed point that is an attractor. This means that for these
+models it is more likely to observe a positive result like the one
+observed in Figure~\ref{fig:unstableSIR_delta05} rather than an
+oscillation like the one of Figure~\ref{fig:unstableSIR}. This is no
+longer true when considering models from biochemistry \cite{wilkinson_stochastic_2011}. 
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=.9\linewidth]{SIR_a05_N50}
+  
+  \caption{"Unstable" malware model in the stable case $\delta=0.5$
+    and $N=50$ (complement of Figure~\ref{fig:unstableSIR}).}
+  \label{fig:unstableSIR_delta05}
+\end{figure}
+
+
+
+
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+In this paper, we show how mean field approximation can be refined by
+a term in $1/N$ and a second term $1/N^2$ where $N$ is the size of the
+system. We exhibit conditions that ensure that this asymptotic
+expansion can be applied for the transient as well as the steady-state
+regimes. In the transient regime, these constants satisfy ordinary
+differential equations that can be easily integrated numerically.  We
+provide a few examples that show that the $1/N$ and $1/N^2$ expansions
+are much more accurate than the classical mean field approximation.
+We also study the limitations of the approach and show that, when the mean
+field approximation does not have an attractor, these new
+approximations might be unstable for large time horizons.  Obtaining a
+better approximation in this case remains a challenge that we leave for
+future work.
+
+When we compare the accuracy of the classical mean field approximation
+to the one of the expansions of order $1/N$ and $1/N^2$, it seems that
+most of the gain in terms of accuracy are brought by the $1/N$-term.
+As the $1/N^2$-term is much more expensive to compute than the $1/N$
+term, we believe that when the $1/N^2$-expansion is too hard to
+compute, staying with the $1/N$-expansion is already sufficient for
+many models.  Finally, our derivation may also be exploited to
+  obtain bounds on the error committed in the approximation of
+  moments, which is something we aim at tackling as future work.
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{biblio}
+
+\end{document}
+
+
+%%% Local Variables:
+%%% TeX-source-correlate-method-active: synctex

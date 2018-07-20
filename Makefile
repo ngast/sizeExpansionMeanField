@@ -3,14 +3,13 @@ EXAMPLE1=Example1_MalwarePropagation.ipynb
 EXAMPLE2=Example2_supermarketModel.ipynb
 EXAMPLE3=Example3_nonStableSIR.ipynb
 
-PAPER=refined_mf_perf2018
-BIBFILE=biblio
+PAPER=sizeExpansionMeanField
 
 all: figures compile_paper
 
 compile_paper:
 	cd paper && pdflatex $(PAPER)
-	cd paper && bibtex $(BIBFILE)
+	cd paper && bibtex $(PAPER)
 	cd paper && pdflatex $(PAPER)
 	cd paper && pdflatex $(PAPER)
 	cd paper && pdflatex $(PAPER)
