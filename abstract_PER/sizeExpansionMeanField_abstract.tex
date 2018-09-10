@@ -1,0 +1,336 @@
+% \documentclass[sigconf]{acmart}
+\documentclass{sig-alternate-per-Performance2018}
+
+
+\usepackage{calc,xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{amsmath,amsfonts,theorem}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{coro}[theorem]{Corollary}
+\usepackage{tikz}
+%\usepackage[backend=bibtex,firstinits=true,maxbibnames=99]{biblatex}
+%\bibliography{biblio}
+\usepackage{hyperref}
+% \definecolor{darkblue}{rgb}{0 0 .6}
+% \hypersetup{colorlinks=true,linkcolor=darkblue,citecolor=darkblue,urlcolor=darkblue}
+% \hypersetup{pageanchor=false}
+%\hypersetup{draft=true}
+%\usepackage{listings}
+
+\newcommand\XN{X^{(N)}}
+\newcommand\LN{L^{(N)}}
+\newcommand\DeltaN{\Delta^{(N)}}
+\newcommand\bl{{\text{\boldmath$\ell$}}}
+\newcommand\betaN{\beta^{(N)}}
+\newcommand\PsiN{\Psi^{(N)}}
+\newcommand\E{\mathcal{E}}
+\newcommand\N{\mathbb{N}}
+\newcommand\R{\mathbb{R}}
+\newcommand\Z{\mathbb{Z}}
+\newcommand\calL{\mathcal{L}}
+\newcommand\floor[1]{\left\lfloor#1\right\rfloor}
+\newcommand\var[1]{\mathrm{var}\left[#1\right]}
+\newcommand\svar[1]{\mathrm{var}[#1]}
+\newcommand\esp[1]{{\mathchoice{\besp{#1}}{\sesp{#1}}{\sesp{#1}}{\sesp{#1}}}}
+\newcommand\besp[1]{\mathbb{E}\left[#1\right]}
+\newcommand\sesp[1]{\mathbb{E}[#1]}
+\newcommand\espN[1]{{\mathchoice{\bespN{#1}}{\sespN{#1}}{\sespN{#1}}{\sespN{#1}}}}
+\newcommand\bespN[1]{\mathbf{E}^{(N)}\left[#1\right]}
+\newcommand\sespN[1]{\mathbf{E}^{(N)}[#1]}
+\newcommand\Proba[1]{{\mathchoice{\bProba{#1}}{\sProba{#1}}{\sProba{#1}}{\sProba{#1}}}} 
+\newcommand\bProba[1]{\mathbf{P}\left[#1\right]}
+\newcommand\sProba[1]{\mathbf{P}[#1]}
+\newcommand\norm[1]{{\mathchoice{\bnorm{#1}}{\snorm{#1}}{\snorm{#1}}{\snorm{#1}}}}
+\newcommand\bnorm[1]{\left\|#1\right\|}
+\newcommand\snorm[1]{\|#1\|}
+
+\newcommand\abs[1]{\left|#1\right|}
+\newcommand\p[1]{\left(#1\right)}
+\newcommand\dt{\frac{d}{dt}}
+\newcommand\ds{\frac{d}{ds}}
+\newcommand\Sym{\mathrm{Sym}}
+\newcommand\red[1]{{\color{red!70!black!100}#1}}
+
+\newcommand\J[1]{J_{(#1)}}
+
+
+\graphicspath{{}{../simulations/output_pdfs/}}
+%\pdfsuppresswarningpagegroup=1
+
+\begin{document}
+\conferenceinfo{IFIP WG 7.3 Performance 2018}{~~~Toulouse, France}
+
+\title{Size Expansions of Mean Field Approximation: Transient and
+  Steady-State Analysis}%
+\subtitle{Extended abstract\thanks{The full version is available at
+    \protect\cite{githubPaper2018}.}}
+
+\numberofauthors{3}
+\author{
+  \alignauthor
+  Nicolas Gast\\
+  \affaddr{Inria, France}\\%
+  \affaddr{Univ. Grenoble Alpes, LIG}\\%
+  \affaddr{Grenoble, France}
+  \email{nicolas.gast@inria.fr}
+  \alignauthor
+  Luca Bortolussi\\
+  \affaddr{DMG, University of Trieste}\\
+  \affaddr{Italy}\\
+  \email{lbortolussi@units.it}
+  \alignauthor
+  Mirco Tribastone\\
+  \affaddr{IMT School for Advanced Studies Lucca}\\
+  \affaddr{Italy}\\
+  \email{mirco.tribastone@imtlucca.it}
+}
+
+\date{\today}
+
+\maketitle 
+
+
+\begin{abstract}
+  Mean field approximation is a powerful tool to study the performance
+  of large stochastic systems that is known to be exact as the
+  system's size $N$ goes to infinity. Recently, it has been shown
+  that, when one wants to compute expected performance metric in
+  steady-state, mean field approximation can be made more accurate by
+  adding a term in $1/N$ to the original approximation. This is called
+  the \emph{refined} mean field approximation in
+  \cite{gast2017refined}.  In this paper, we show how to obtain the
+  same result for the transient regime and we provide a further
+  refinement by expanding the term in $1/N^2$ (both for transient and
+  steady-state regime). Our derivations are inspired by moment-closure
+  approximation. We provide a number of examples that show this new
+  approximation is usable in practice for systems with up to a few
+  tens of dimensions.
+\end{abstract}
+
+% % A category with the (minimum) three required fields
+% \category{G.3}{Mathematics of Computing}{Probability and Statistics} [Queueing Theory]
+% \terms{Theory, Performance}
+% \keywords{Algorithms, complexity, open problems, approximation}
+
+
+\section{Introduction}
+
+Mean field approximation is a widely used technique in the performance
+evaluation community (\emph{e.g.}, to study load-balancing strategies
+\cite{mitzenmacher1996power,vvedenskaya1996queueing} to mention a
+popular application). The focus of this approximation is to study the
+performance of systems composed of a large number of interacting
+objects.  This approximation can be used to study transient (for
+example the time to fill a cache \cite{gast2015transient_short}) or
+steady-state properties (for example the steady-state response time of
+a system \cite{mitzenmacher1996power,vvedenskaya1996queueing}).  One
+of the reasons of the success of mean field approximation is that it
+is often very accurate as soon as $N$, the number of objects in the
+system, exceeds a few hundreds. In fact, this approximation can be
+proven to be asymptotically exact as $N$ goes to infinity, see for
+example \cite{kurtz70,benaim2008class} and explicit bounds for the
+convergence rate exist
+\cite{bortolussi2013bounds,gast2017expected,ying2016rate}.
+
+Recently, the authors of \cite{gast2017refined} proposed what they
+call a \emph{refined} mean field approximation that can be used to
+characterize steady-state performance metrics more precisely. Their
+refinement uses that for many models, a steady-state expected
+performance metric of a system with $N$ objects $\esp{h(X)}$ is equal
+to its mean field approximation $h(\pi)$ plus a term in $1/N$:
+\begin{align}
+  \label{eq:refined_1/N}
+  \esp{h(X)} = h(\pi) + \frac1NV_{(h)} + o\p{\frac1N},
+\end{align}
+where $\pi$ is the fixed point of the ODE that describes the mean
+field approximation and $V_{(h)}$ is a constant that can be easily
+evaluated numerically.  By using a number of examples, they show that
+the refined approximation $h(\pi) + \frac1NV_{(h)}$ is much more
+accurate than the mean field approximation for moderate system sizes
+(i.e., a few tens of objects).
+
+\section{Main results}
+
+In \cite{githubPaper2018}, we extend this method in two directions:
+First we generalize Equation~\eqref{eq:refined_1/N} to the transient
+behavior; second we establish the existence of a second order term in
+$1/N^2$ (both in transient and steady-state regimes). More precisely,
+we establish conditions such that for any smooth function $h$, there
+exist constants $V_{(h)}$ and $A_{(h)}$ such that for any time
+$t\in[0;\infty)\cup\{\infty\}$:
+\begin{align*}
+  %\label{eq:refined_1/N^2}
+  \esp{h(X(t))} = h(x(t)) + \frac1N V_{(h)}(t) + \frac1{N^2} A_{(h)}(t) +
+  o\p{\frac1{N^2}}.  
+\end{align*}
+We show that for the transient regime $t\in[0,\infty)$, $V_{(h)}(t)$
+and $A_{(h)}(t)$ satisfy a linear time-inhomogeneous differential
+equation that can be easily integrated numerically. For the
+steady-state, the constants $V_{(h)}(\infty)$ and $A_{(h)}(\infty)$
+correspond to the fixed point of this differential equation.
+
+We use the above expansion to propose two new approximations that
+depend on the system size $N$ and that are expansions of the classical
+mean field approximation to the order $1/N$ and $1/N^2$. This gives
+three approximations:
+\begin{itemize}
+\item The mean field approximation: $h(x(t))$;
+\item $1/N$-expansion: $h(x(t))+V_{(h)}(t)/N$;
+\item $1/N^2$-expansion: $h(x(t))+V_{(h)}(t)/N+A_{(h)}(t)/N^2$.
+\end{itemize}
+
+We derive our results for the classical model of density-dependent
+population process \cite{kurtz70}.
+
+\section{Numerical comparison}
+
+In \cite{githubPaper2018}, we study numerically the accuracy of the
+approximation by considering three examples: two malware propagation
+models and the classical supermarket models of
+\cite{mitzenmacher1996power,vvedenskaya1996queueing}. Our numerical
+results shows that the two expansions very accurately capture the
+transient behavior of such a system even when $N\approx10$. Moreover,
+they are generally much more accurate than the classical mean field
+approximation for small values of $N$ (for transient and steady-state
+regimes).  Our experiments also confirm the good accuracy of the
+$1/N$-expansion approximation that was observed for steady-state
+values in \cite{gast2017refined}: In most cases, the largest gain in
+accuracy comes from the $1/N$-term (both for the transient and
+steady-state values).  The $1/N^2$-term does improve the accuracy but
+only marginally.  We also study the limit of the method by studying an
+unstable mean field model that has an unstable fixed point.
+
+\paragraph*{The Supermarket Model}
+To give a flavor of the results, let us consider the supermarket model
+(more examples can be found in the full paper).  The system is
+composed of $N$ identical servers. Jobs arrive at a central broker
+according to a Poisson process of rate $\rho N$ and are dispatched
+towards the servers by using the JSQ(2) policy: for each incoming job,
+the broker samples $2$ servers at random and sends the jobs to the
+server that has the smallest number of jobs in its queue (ties are
+broken at random). The time to process a job is exponentially
+distributed with mean $1$.
+
+\begin{figure}[ht]
+  \centering
+  \begin{tabular}{c}
+    \includegraphics[width=.8\linewidth]{twoChoice_refRefTransient_N10_rho90}
+  \end{tabular}
+  \caption{Supermarket model : expected queue length as a function of
+    time. }
+  \label{fig:supermarket-transient}
+\end{figure}
+
+In Figure~\ref{fig:supermarket-transient}, we plot how the expected
+queue length evolves with time for the supermarket model with $N=10$
+servers and $\rho=0.9$.  We start in a system where $8$ queues have
+$3$ jobs and $2$ queues have two jobs.  We observe that the two
+expansions are much more accurate than the classical mean field
+approximation and that the $1/N^2$-expansion provides a slightly
+better approximation than the $1/N$-expansion.
+
+
+In Table~\ref{tab:supermarket}, we show the average queue length for
+different values of $\rho$ and $N$. Again, we observe that the values
+coming from the two expansions are much closer to the values obtained
+by simulation than the classical mean field approximation. Again, most
+of the gain seems to come from the $1/N$-term. 
+
+\begin{table}[ht]
+  \centering
+  \small 
+  \begin{tabular}{@{}|@{ }ccc@{ }|@{}c@{}|@{}c@{}|@{}c@{}|@{}c@{}|@{}}
+    \hline
+    $N$&$k$&$\rho$&Mean field&$1/N$-expansion&$1/N^2$-expansion&Simulation\\
+    \hline 
+    10 & 2 & 0.9 	 &2.3527 &	2.7513 &	2.8045 &	2.8002 \\
+    20 & 2 & 0.9 	 &2.3527 &	2.5520 &	2.5653 &	2.5662 \\
+    \hline
+    10 & 2 & 0.95 	 &3.2139 &	4.1017 &	4.3265 &	4.2993 \\
+    20 & 2 & 0.95 	 &3.2139 &	3.6578 &	3.7140 &	3.7124 \\
+    \hline  \end{tabular}
+  \caption{Supermarket model, steady-state average queue length :
+    comparison of the value computed by simulation with the three
+    approximations. }
+  \label{tab:supermarket}
+\end{table}
+
+
+
+\section{Conclusion}
+
+To summarize, we show in \cite{githubPaper2018} how mean field
+approximation can be refined by a first term in $1/N$ and a second
+term $1/N^2$ where $N$ is the size of the system. We exhibit
+conditions that ensure that this asymptotic expansion can be applied
+for the transient as well as the steady-state regimes. In the
+transient regime, these constants satisfy ordinary differential
+equations that can be easily integrated numerically.  We provide a few
+examples that show that the $1/N$ and $1/N^2$ expansions are much more
+accurate than the classical mean field approximation.  We also study
+the limitations of the approach and show that, when the mean field
+approximation does not have an attractor, these new approximations
+might be unstable for large time horizons.  Obtaining a better
+approximation in this case remains a challenge that we leave for
+future work.
+
+Finally, we show that, despite the complexity of the formulas, it is
+relatively easy to compute the $1/N$ and $1/N^2$ terms (in the
+transient and steady-state regimes) for realistic models such as the
+supermarket model. The developed method is generic and is implemented
+in a tool \cite{rmfTool2018}.
+
+
+% Note that in \cite{githubPaper2018}, we also provide an example that
+% has unique fixed point that is not an attractor which means that the
+% classical mean field approximation cannot be use for steady-state
+% approximation as shown in \cite{benaim2008class}.  We show that in
+% this case, the $1/N$ and $1/N^2$ expansions are not stable with time
+% and are therefore inaccurate when the time becomes large.
+
+\paragraph*{Reproducibility} The code to reproduce the paper --
+including simulations, figures and text -- is available at
+\cite{githubPaper2018}.
+
+
+\small 
+\bibliographystyle{plain}
+\bibliography{../paper/biblio}
+
+
+% \section{Conclusion}
+% \label{sec:conclusion}
+
+% In this paper, we show how mean field approximation can be refined by
+% a term in $1/N$ and a second term $1/N^2$ where $N$ is the size of the
+% system. We exhibit conditions that ensure that this asymptotic
+% expansion can be applied for the transient as well as the steady-state
+% regimes. In the transient regime, these constants satisfy ordinary
+% differential equations that can be easily integrated numerically.  We
+% provide a few examples that show that the $1/N$ and $1/N^2$ expansions
+% are much more accurate than the classical mean field approximation.
+% We also study the limitations of the approach and show that, when the mean
+% field approximation does not have an attractor, these new
+% approximations might be unstable for large time horizons.  Obtaining a
+% better approximation in this case remains a challenge that we leave for
+% future work.
+
+% When we compare the accuracy of the classical mean field approximation
+% to the one of the expansions of order $1/N$ and $1/N^2$, it seems that
+% most of the gain in terms of accuracy are brought by the $1/N$-term.
+% As the $1/N^2$-term is much more expensive to compute than the $1/N$
+% term, we believe that when the $1/N^2$-expansion is too hard to
+% compute, staying with the $1/N$-expansion is already sufficient for
+% many models.  Finally, our derivation may also be exploited to
+%   obtain bounds on the error committed in the approximation of
+%   moments, which is something we aim at tackling as future work.
+
+
+\end{document}
+
+
+%%% Local Variables:
+%%% TeX-source-correlate-method-active: synctex
