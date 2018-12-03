@@ -3,14 +3,11 @@
 \usepackage[utf8]{inputenc}
 \usepackage{appendixnumberbeamer}
 \setbeamercolor{alerted text}{fg=blue!150!black!100}  %
-%\usecolortheme{fly} \setbeamercolor{alerted text}{fg=white}  %
-%\usecolortheme{seagull}
-%\usecolortheme{dove}
 
 \usepackage[normalem]{ulem}
 
 \newcommand\gagnerduTemps[1]{#1}
-%\newcommand\gagnerduTemps[1]{}
+
 
 \definecolor{green}{rgb}{0.0, 0.6, 0.0}
 \definecolor{red}{rgb}{0.7, 0.0, 0.0}
@@ -102,7 +99,7 @@
 
 \title{Size Expansions of Mean Field Approximation: Transient and
   Steady-State Analysis}%
-\author{
+\author[Nicolas Gast]{
   \begin{tabular}{ccc}
     \textbf{Nicolas Gast}
     &Luca Bortolussi
@@ -111,8 +108,8 @@
     & Univ. Trieste, Italy
     &IMT Lucca, Italy
   \end{tabular}
-}\author{Nicolas Gast}%
-\institute{Inria, France}%
+}
+\institute[Inria, France]{}%
 \date{IFIP Performance 2018, Toulouse}%
 
 \maketitle
@@ -168,8 +165,6 @@
     Policy & Mean Field ($N=\infty$)
     &\multicolumn{2}{c|}{$N=100$}
     &\multicolumn{2}{c|}{$N=10$}\\
-    % &\uncover<2->{Simu. ($N{=}10$)}&\uncover<3->{Refined Mean
-    %                                  Field}\\
            &&Simu. \uncover<2->{&R.M.F.}
     & Simu\uncover<2->{&R.M.F.} \\\hline
     SQ(2) & 2.35 & 2.39  \uncover<2->{&\color{darkgreen} 2.39}
@@ -181,15 +176,12 @@
 \end{frame}
 
 \begin{frame}{ Question addressed in this work}
-  % \begin{align*}
-  %   Perf(N) \approx Perf(\infty)+\frac{V}{N}
-  % \end{align*}
   
   \begin{exampleblock}{Our contributions}
     \begin{itemize}
-    \item Can we compute the next term in the expansion? \blue{Yes}.
-    \item Can we do the same analysis for the transient regime? \blue{Yes}.
-    \item What it the cost (computation) and the benefit (accuracy)?
+    \item We can compute the next term in the expansion.
+    \item We can do the same analysis for the transient regime?
+    \item We study the cost (computation) and the benefit (accuracy).
     \end{itemize}
   \end{exampleblock}
 
@@ -197,7 +189,6 @@
     Perf(N,t) \approx
     Perf(\infty,t)+\frac{V(t)}{N}+\frac{A(t)}{N^2}+\dots 
   \end{align*}
-  %Provide differential equation and analyze the cost. 
 \end{frame}
 
 \begin{frame}{Outline}
@@ -210,7 +201,6 @@
     problem}{But how to apply it?}
   
   \begin{align*}
-    % "\text{\color{blue}Theorem}". \qquad
     \lim_{N\to\infty}\left(\begin{array}{c}\includegraphics[width=.28\linewidth]{traj_rho80_onlyN100}\end{array}\right) 
     =\underbrace{\begin{array}{c}\includegraphics[width=.28\linewidth]{traj_rho80_onlyNinf}\end{array}}_{
     \text{Mean field approximation}}
@@ -240,15 +230,11 @@
 \end{frame}
 
 \begin{frame}{$SQ(d)$: state representation}
-  \begin{itemize}
-  \item Let $S_n(t)$ be the queue length of the $n$th queue at time
-    $t$. \pause
-  \item Alternative representation:
+    The state space is $X=(X_1,X_2,\dots)$ where
     \begin{align*}
-      X_i(t) = \frac1N \sum_{n=1}^N \mathbf{1}_{\{S_n(t)\ge i\}},
+      X_i(t) = \text{\blue{fraction of queues with queue length $\ge
+      i$}.} 
     \end{align*}
-    which is the \blue{fraction of queues with queue length $\ge i$}. 
-  \end{itemize}
   \bigskip
   
   \begin{tabular}{cc}
@@ -259,31 +245,8 @@
 
 \end{frame}
 
-\begin{frame}{$SQ(d):$ state transitions}
-  \begin{tabular}{cc}
-    \mpage{.3}{\includegraphics[width=\linewidth]{supermarket}}
-    &\mpage{.6}{
-      \begin{itemize}
-      \item Arrival:\qquad
-        $\displaystyle x\mapsto x+\frac1N\mathbf{e_i}$. 
-      \item Departures:
-      $\displaystyle x\mapsto x-\frac1N\mathbf{e_i}$.
-      \end{itemize}
-      }
-  \end{tabular}\bigskip\pause 
 
-  Recall that $x_i$ is the fraction of servers with $i$ jobs or
-  more. Pick two servers at random, what is the probability the least
-  loaded has $i$ jobs?\pause
-  \begin{align*}
-    &x_{i-1}^2 - x_{i}^2& \text{ when picked with replacement}\\
-    &x_{i-1}\frac{Nx_{i-1}-1}{N-1} - x_i\frac{Nx_{i}-1}{N-1} & \text{ when picked without replacement}
-  \end{align*}\bigskip
-  Note: this becomes asymptotically the same as $N$ goes to
-  infinity. 
-\end{frame}
-
-\begin{frame}{Transitions and Mean Field Approximation}
+\begin{frame}{State transitions and Mean Field Approximation}
   State changes on $x$:
   \begin{align*}
     x\mapsto x + \frac1N\mathbf{e_i} & \text{ at rate $N\rho(x_{i-1}^d-x_{i}^d)$}\\
@@ -299,13 +262,6 @@
 \end{frame}
 
 \begin{frame}{Density dependent population process (Kurtz, 70s)}
-  %{where $O(1)$ objects change states at the same time}
-  
-  % $X$ denotes the empirical measure.
-  % \begin{align*}
-  %   X_i(t) = \text{ fraction of objects in state $i$ }
-  % \end{align*}
-  % \bigskip\pause
   A population process is a sequence of CTMCs $X^N(t)$ indexed by the
   population size $N$, with state space $E^N\subset E$ and
   transitions (for $\ell\in\calL$): 
@@ -370,16 +326,6 @@
   \end{tabular}
   
   \alert{Error decreases as $1/N$}
-  % \pause
-  % \bigskip\bigskip
-  
-  % \blue{Theorem} (Kolokoltsov 2012, G. 2017\& 2018). If the drift $f$
-  % is $C^2$ and has a unique exponentially stable attractor, then for
-  % any $t\in[0,\infty)\cup\{\infty\}$, there exists a constant $V_t$
-  % such that:
-  % \begin{align*}
-  %   \displaystyle \esp{h(X^N(t))}= h(x(t)) + \frac{V(t)}{N} + O(1/N^2)
-  % \end{align*}
 \end{frame}
 
 \begin{frame}{Where does the $O(1/N)$-term comes from?}
@@ -403,10 +349,6 @@
                     &=\esp{
                       \underbrace{2X_iX_{i-1}^2}_{\blue{\esp{X_iX_{i-1}^2\approx
                       ?}}} + \dots\dots\dots\dots}
-                     % &=\esp{2X(t) -
-                     %   \underbrace{2X(t)^3}_{\green{\esp{X^3}\approx?}}
-                     %   - 2X(t)^2 + 
-                     %   \frac1N(1+X(t)-X(t)^2)}
   \end{align*}
   where we denote $X$ instead of $X(t)$ for simplicity. 
 \end{frame}
@@ -465,44 +407,6 @@
   \end{align*}
 \end{frame}
 
-% \begin{frame}{System Size Expansion Approach}
-%   Using this approach, there exists a system of ordinary
-
-%   {\tiny 
-%     \begin{align*}
-%       \esp{(X-x)}&=\frac1NV(t)+\frac1{N^2}A(t)+O(1/N^3)\\
-%       \esp{(X-x)^{\otimes2}}&=\frac1NW(t)+\frac1{N^2}B(t)+O(1/N^3)\\
-%       \esp{(X-x)^{\otimes3}}&=\frac1{N^2}C(t)+O(1/N^3)\\
-%       \esp{(X-x)^{\otimes4}}&=\frac1{N^2}D(t)+O(1/N^3)\\
-%       \esp{(X-x)^{\otimes5}}&=O(1/N^3)
-%     \end{align*}
-%   }
-%   Let $x(t)$ be the mean field approximation and $Y(t)=X(t)-x(t)$.
-
-%   Main idea to estimate $\esp{X}$.
-%   \begin{itemize}
-%   \item
-%     $\dt Y(t)^{(k)}=\underbrace{Y(t)\otimes\dots\otimes
-%       Y(t)}_{\text{$k$ times}}$ can be expressed as (an exact)
-%     function of others $Y(t)^{(j)}$.
-%   \end{itemize}
-%   \pause
-  
-%   \begin{exampleblock}{}
-%     You can close the equations by assuming that $Y^{(k)}=0$ for $k\ge
-%     K$.  
-%     \begin{itemize}
-%     \item For $K=1$, this gives the mean field approximation
-%       ($1/N$-accurate)
-%     \item For $K=3$, this gives the refined mean field
-%       ($1/N^2$-accurate). 
-%     \item For $K=5$, this gives a second order expansion
-%       ($1/N^3$-accurate).
-%     \end{itemize}
-%   \end{exampleblock}
-%   Limit of the approach: For a system of dimension $d$, $Y(t)^{(k)}$
-%   has $d^k$ equations.
-% \end{frame}
 
 \begin{frame}{Computational issues}
   Recall that $x(t)$ be the mean field approximation and $Y(t)=X(t)-x(t)$.
@@ -643,14 +547,12 @@
   \begin{itemize}
       \item \tiny \blue{A Refined Mean Field Approximation} by Gast
         and Van Houdt. SIGMETRICS 2018 (best paper award)
-       % {\url{https://hal.inria.fr/hal-01622054/}}
       \item \blue{Size Expansions of Mean Field Approximation:
           Transient and Steady-State Analysis} Gast, Bortolussi,
         Tribastone
       \item \blue{Expected Values Estimated via Mean Field Approximation
           are O(1/N)-accurate} by Gast. SIGMETRICS 2017.
       \item \url{https://github.com/ngast/rmf_tool/}
-        % {\url{https://github.com/ngast/meanFieldAccuracy}} 
       \end{itemize}
     \end{frame}
 
